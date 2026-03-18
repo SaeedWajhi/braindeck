@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrainDeck — Your Learning Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0d0f14;--surface:#161921;--surface2:#1e2230;--border:#2a2f42;
+    --accent:#6ee7b7;--accent2:#818cf8;--accent3:#f472b6;--warn:#fbbf24;
+    --text:#e8eaf0;--muted:#6b7280;--radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(110,231,183,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(110,231,183,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+  .app{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:24px 20px 80px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+  .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-0.5px;}
+  .logo span{color:var(--accent);}
+  .header-right{display:flex;align-items:center;gap:10px;}
+  .streak-badge{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:6px 14px;font-size:0.8rem;font-weight:500;color:var(--warn);display:flex;align-items:center;gap:6px;}
+  .provider-badge{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:6px 12px;font-size:0.75rem;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;transition:all 0.2s;}
+  .provider-badge:hover{border-color:var(--accent);color:var(--text);}
+  .provider-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
+  .provider-dot.connected{background:var(--accent);}
+
+  .tab-nav{display:flex;gap:5px;margin-bottom:28px;background:var(--surface);border-radius:var(--radius);padding:5px;border:1px solid var(--border);}
+  .tab-btn{flex:1;padding:9px 5px;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.76rem;font-weight:500;border-radius:10px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+  .tab-btn.active{background:var(--surface2);color:var(--text);box-shadow:0 0 0 1px var(--border);}
+  .tab-btn:hover:not(.active){color:var(--text);}
+
+  .view{display:none;}.view.active{display:block;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:16px;}
+  .card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+  .tag{font-size:0.68rem;font-weight:600;letter-spacing:0.5px;padding:3px 9px;border-radius:100px;text-transform:uppercase;background:rgba(167,139,250,0.12);color:#c4b5fd;}
+
+  textarea,input[type="text"],input[type="password"]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.92rem;padding:12px 14px;resize:vertical;outline:none;transition:border-color 0.2s;}
+  textarea:focus,input[type="text"]:focus,input[type="password"]:focus{border-color:var(--accent);}
+  textarea{min-height:90px;}
+  select{background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;padding:10px 12px;outline:none;cursor:pointer;transition:border-color 0.2s;}
+  select:focus{border-color:var(--accent);}
+  label{font-size:0.82rem;color:var(--muted);font-weight:500;display:block;margin-bottom:6px;}
+
+  .btn{padding:11px 22px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:500;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:7px;}
+  .btn-primary{background:var(--accent);color:#0d1a13;font-weight:700;}
+  .btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);}
+  .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+  .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-danger{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.2);}
+  .btn-danger:hover{background:rgba(239,68,68,0.25);}
+  .btn-warn{background:rgba(251,191,36,0.12);color:var(--warn);border:1px solid rgba(251,191,36,0.2);}
+  .btn-warn:hover{background:rgba(251,191,36,0.2);}
+  .btn-sm{padding:6px 12px;font-size:0.78rem;}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;transform:none;}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  .form-group{margin-bottom:14px;}
+
+  .chat-area{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;min-height:180px;max-height:420px;overflow-y:auto;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;}
+  .msg{max-width:85%;}
+  .msg.ai{align-self:flex-start;}.msg.user{align-self:flex-end;}
+  .msg-bubble{padding:11px 15px;border-radius:14px;font-size:0.9rem;line-height:1.55;white-space:pre-wrap;}
+  .msg.ai .msg-bubble{background:var(--surface);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px;}
+  .msg.user .msg-bubble{background:rgba(110,231,183,0.15);border:1px solid rgba(110,231,183,0.25);color:var(--accent);border-bottom-right-radius:4px;}
+  .msg-label{font-size:0.72rem;color:var(--muted);margin-bottom:4px;}
+  .msg.user .msg-label{text-align:right;}
+
+  .typing{display:flex;gap:5px;padding:14px 15px;}
+  .typing span{width:7px;height:7px;background:var(--muted);border-radius:50%;animation:bounce 1.2s infinite ease-in-out;}
+  .typing span:nth-child(2){animation-delay:0.2s;}.typing span:nth-child(3){animation-delay:0.4s;}
+  @keyframes bounce{0%,80%,100%{transform:scale(0.8);opacity:0.4}40%{transform:scale(1.2);opacity:1}}
+
+  .learned-list{display:flex;flex-direction:column;gap:10px;}
+  .learned-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;transition:border-color 0.2s;}
+  .learned-item:hover{border-color:var(--accent2);}
+  .learned-item-body{flex:1;}
+  .learned-item-title{font-weight:600;font-size:0.92rem;margin-bottom:4px;}
+  .learned-item-desc{font-size:0.82rem;color:var(--muted);line-height:1.4;}
+  .learned-item-meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center;}
+
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+  .stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;text-align:center;}
+  .stat-num{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--accent);}
+  .stat-label{font-size:0.78rem;color:var(--muted);margin-top:2px;}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty-icon{font-size:2.5rem;margin-bottom:10px;}
+  .empty p{font-size:0.9rem;line-height:1.6;}
+
+  .result-correct{border-left:3px solid var(--accent);padding-left:12px;}
+  .result-wrong{border-left:3px solid #f87171;padding-left:12px;}
+  .result-partial{border-left:3px solid var(--warn);padding-left:12px;}
+
+  .mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+  .mode-card{background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all 0.2s;text-align:center;}
+  .mode-card:hover,.mode-card.selected{border-color:var(--accent);}
+  .mode-card.selected{background:rgba(110,231,183,0.07);}
+  .mode-icon{font-size:1.8rem;margin-bottom:8px;}
+  .mode-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:4px;}
+  .mode-desc{font-size:0.78rem;color:var(--muted);line-height:1.4;}
+
+  .divider{height:1px;background:var(--border);margin:20px 0;}
+  .section-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+
+  .progress-bar{background:var(--surface2);border-radius:100px;height:6px;overflow:hidden;margin-top:6px;}
+  .progress-fill{height:100%;background:var(--accent);border-radius:100px;transition:width 0.5s ease;}
+
+  /* Category */
+  .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px;}
+  .cat-chip{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color 0.2s;}
+  .cat-chip:hover{border-color:var(--accent2);}
+  .cat-chip-left{display:flex;align-items:center;gap:10px;}
+  .cat-chip-name{font-size:0.85rem;font-weight:600;}
+  .cat-chip-count{font-size:0.72rem;color:var(--muted);}
+  .builtin-label{font-size:0.65rem;color:var(--muted);background:var(--border);padding:2px 6px;border-radius:100px;}
+  .add-cat-form{background:var(--surface2);border:1px dashed var(--border);border-radius:12px;padding:18px;}
+  .emoji-picker{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+  .emoji-opt{font-size:1.25rem;padding:5px 8px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}
+  .emoji-opt:hover{background:var(--surface);}
+  .emoji-opt.selected{border-color:var(--accent);background:rgba(110,231,183,0.1);}
+
+  /* Settings */
+  .provider-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px;}
+  .provider-card{background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;transition:all 0.2s;position:relative;}
+  .provider-card:hover{border-color:var(--accent2);}
+  .provider-card.active-provider{border-color:var(--accent);background:rgba(110,231,183,0.05);}
+  .provider-card-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .provider-logo{font-size:1.4rem;}
+  .provider-name{font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;}
+  .provider-model{font-size:0.75rem;color:var(--muted);}
+  .provider-status{position:absolute;top:12px;right:12px;font-size:0.68rem;padding:3px 8px;border-radius:100px;}
+  .status-set{background:rgba(110,231,183,0.15);color:var(--accent);}
+  .status-unset{background:rgba(107,114,128,0.15);color:var(--muted);}
+  .active-check{position:absolute;bottom:10px;right:12px;color:var(--accent);font-size:0.8rem;font-weight:700;}
+
+  .key-input-wrap{position:relative;display:flex;gap:8px;align-items:center;}
+  .key-input-wrap input{flex:1;font-family:monospace;font-size:0.85rem;letter-spacing:0.5px;}
+  .toggle-vis{background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 10px;cursor:pointer;font-size:0.9rem;flex-shrink:0;transition:all 0.2s;}
+  .toggle-vis:hover{border-color:var(--accent);color:var(--accent);}
+
+  .test-result{margin-top:10px;padding:10px 14px;border-radius:8px;font-size:0.83rem;display:none;}
+  .test-result.ok{background:rgba(110,231,183,0.1);border:1px solid rgba(110,231,183,0.3);color:var(--accent);}
+  .test-result.fail{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;}
+
+  /* Export/Import */
+  .data-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .data-action-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;}
+  .data-action-icon{font-size:2rem;margin-bottom:10px;}
+  .data-action-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;margin-bottom:6px;}
+  .data-action-desc{font-size:0.78rem;color:var(--muted);line-height:1.4;margin-bottom:14px;}
+
+  .info-box{background:rgba(129,140,248,0.08);border:1px solid rgba(129,140,248,0.2);border-radius:10px;padding:12px 16px;font-size:0.82rem;color:var(--accent2);line-height:1.5;margin-bottom:16px;}
+  .warn-box{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:12px 16px;font-size:0.82rem;color:var(--warn);line-height:1.5;margin-bottom:16px;}
+
+  #toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:0.85rem;color:var(--text);transform:translateY(80px);opacity:0;transition:all 0.3s;z-index:999;max-width:320px;}
+  #toast.show{transform:translateY(0);opacity:1;}
+
+  .flex-end{display:flex;justify-content:flex-end;}
+  .gap-8{gap:8px;}
+  .mt-10{margin-top:10px;}
+
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-track{background:var(--surface);}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+  @media(max-width:600px){
+    .mode-cards,.data-actions{grid-template-columns:1fr;}
+    .tab-btn{font-size:0.68rem;padding:7px 2px;}
+    .provider-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">Brain<span>Deck</span></div>
+    <div class="header-right">
+      <div class="provider-badge" onclick="switchTab('settings', document.querySelector('[data-tab=settings]'))">
+        <div class="provider-dot" id="header-dot"></div>
+        <span id="header-provider">No AI set</span>
+      </div>
+      <div class="streak-badge">🔥 <span id="streak-count">0</span> day streak</div>
+    </div>
+  </header>
+
+  <div class="tab-nav">
+    <button class="tab-btn active"   data-tab="learn"      onclick="switchTab('learn',this)">📚 Learn</button>
+    <button class="tab-btn"          data-tab="quiz"       onclick="switchTab('quiz',this)">🎯 Quiz</button>
+    <button class="tab-btn"          data-tab="library"    onclick="switchTab('library',this)">🗂 Library</button>
+    <button class="tab-btn"          data-tab="categories" onclick="switchTab('categories',this)">🏷 Categories</button>
+    <button class="tab-btn"          data-tab="stats"      onclick="switchTab('stats',this)">📊 Progress</button>
+    <button class="tab-btn"          data-tab="settings"   onclick="switchTab('settings',this)">⚙️ Settings</button>
+  </div>
+
+  <!-- ===== LEARN ===== -->
+  <div class="view active" id="view-learn">
+    <div class="card">
+      <div class="card-title">How did you learn today?</div>
+      <div class="mode-cards">
+        <div class="mode-card selected" id="mode-type" onclick="selectMode('type')">
+          <div class="mode-icon">✍️</div><div class="mode-title">I'll Type It</div>
+          <div class="mode-desc">Write what you learned directly</div>
+        </div>
+        <div class="mode-card" id="mode-chat" onclick="selectMode('chat')">
+          <div class="mode-icon">🤖</div><div class="mode-title">AI Extracts It</div>
+          <div class="mode-desc">Chat about your day, AI pulls out concepts</div>
+        </div>
+      </div>
+      <div id="type-mode">
+        <div class="form-group"><label>Term or Concept Name</label><input type="text" id="add-term" placeholder="e.g. Prompt Chaining, RAG, API endpoint..."></div>
+        <div class="form-group"><label>Describe it in your own words</label><textarea id="add-desc" placeholder="Write what you understood. No need to be perfect!"></textarea></div>
+        <div class="row" style="gap:10px;margin-bottom:14px;">
+          <div style="flex:1"><label>Category</label><select id="add-category" style="width:100%"></select></div>
+          <div style="flex:1"><label>How well do you know it?</label>
+            <select id="add-confidence" style="width:100%">
+              <option value="1">🌱 Just heard it</option><option value="2">🤔 Bit confused</option>
+              <option value="3">👍 Getting there</option><option value="4">💪 I got it!</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="addConcept()">💾 Save to Library</button>
+      </div>
+      <div id="chat-mode" style="display:none">
+        <div id="no-ai-warn" class="warn-box" style="display:none">⚠️ No AI provider set up yet. Go to <strong>⚙️ Settings</strong> to add your API key first.</div>
+        <div class="chat-area" id="extract-chat"></div>
+        <textarea id="extract-input" placeholder="Tell me about your day..." style="min-height:60px;resize:none;margin-bottom:10px;"></textarea>
+        <div class="row" style="justify-content:space-between;">
+          <button class="btn btn-secondary" onclick="resetExtractChat()">🔄 Start Over</button>
+          <button class="btn btn-primary" onclick="sendExtractMessage()">Send →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== QUIZ ===== -->
+  <div class="view" id="view-quiz">
+    <div id="quiz-setup">
+      <div class="card">
+        <div class="card-title">🎯 Quiz Settings</div>
+        <div id="quiz-no-ai-warn" class="warn-box" style="display:none">⚠️ No AI provider set up. Go to <strong>⚙️ Settings</strong> to add your API key first.</div>
+        <div class="form-group"><label>Quiz Category</label><select id="quiz-category" style="width:100%"></select></div>
+        <div class="form-group"><label>Quiz Style</label>
+          <select id="quiz-style" style="width:100%">
+            <option value="explain">Explain it to me (open answer)</option>
+            <option value="use">Use it in a sentence</option>
+            <option value="rapid">Rapid fire (short answer)</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="startQuiz()" style="width:100%">🚀 Start Quiz</button>
+      </div>
+    </div>
+    <div id="quiz-active" style="display:none">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="card-title" style="margin:0">Question <span id="q-num">1</span></div>
+          <span id="q-tag" class="tag">AI/ML</span>
+        </div>
+        <div style="font-size:1.05rem;font-weight:500;margin-bottom:20px;line-height:1.5;" id="quiz-question"></div>
+        <div class="chat-area" id="quiz-chat" style="min-height:120px;"></div>
+        <textarea id="quiz-input" placeholder="Type your answer here..." style="min-height:60px;resize:none;margin-bottom:10px;"></textarea>
+        <div class="row" style="justify-content:space-between;">
+          <button class="btn btn-secondary" onclick="skipQuestion()">⏭ Skip</button>
+          <div class="row gap-8">
+            <button class="btn btn-secondary" onclick="askHint()">💡 Hint</button>
+            <button class="btn btn-primary" onclick="submitAnswer()">Check Answer →</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex-end mt-10"><button class="btn btn-danger" onclick="endQuiz()">✕ End Quiz</button></div>
+    </div>
+  </div>
+
+  <!-- ===== LIBRARY ===== -->
+  <div class="view" id="view-library">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="row" style="gap:8px;align-items:center;">
+        <input type="text" id="search-input" placeholder="Search your library..." style="flex:1;" oninput="renderLibrary()">
+        <select id="filter-cat" onchange="renderLibrary()" style="min-width:140px;"></select>
+      </div>
+    </div>
+    <div class="learned-list" id="library-list"></div>
+  </div>
+
+  <!-- ===== CATEGORIES ===== -->
+  <div class="view" id="view-categories">
+    <div class="card">
+      <div class="card-title">🏷 Manage Categories</div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:18px;">Built-in categories cannot be deleted. Add unlimited custom ones for anything you're learning.</p>
+      <div class="section-title">All Categories</div>
+      <div class="cat-grid" id="cat-grid"></div>
+      <div class="divider"></div>
+      <div class="section-title">➕ Add New Category</div>
+      <div class="add-cat-form">
+        <div class="form-group"><label>Choose an Emoji</label><div class="emoji-picker" id="emoji-picker"></div></div>
+        <div class="form-group"><label>Or type your own emoji</label><input type="text" id="custom-emoji" placeholder="🧠" maxlength="2" style="width:70px;"></div>
+        <div class="form-group"><label>Category Name</label><input type="text" id="new-cat-name" placeholder="e.g. AI Agents, Full Stack Dev, Business English..."></div>
+        <button class="btn btn-primary" onclick="addCategory()">➕ Add Category</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STATS ===== -->
+  <div class="view" id="view-stats">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Concepts Saved</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-quizzed">0</div><div class="stat-label">Times Quizzed</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-correct">0</div><div class="stat-label">Correct Answers</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-streak">0</div><div class="stat-label">Day Streak 🔥</div></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Knowledge by Category</div>
+      <div id="cat-breakdown"></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title">Weakest Concepts — Quiz These!</div>
+      <div id="weak-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS ===== -->
+  <div class="view" id="view-settings">
+
+    <!-- AI Provider -->
+    <div class="card">
+      <div class="card-title">🤖 AI Provider</div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:18px;">Choose which AI to use for quizzes and extracting concepts. Click a provider to select it, then enter your API key below.</p>
+      <div class="provider-grid" id="provider-grid"></div>
+
+      <div id="key-section">
+        <div class="divider"></div>
+        <div class="section-title">API Key for <span id="selected-provider-name">—</span></div>
+        <div class="info-box" id="key-help-text">Select a provider above to see instructions.</div>
+        <div class="form-group">
+          <label>Paste your API Key here</label>
+          <div class="key-input-wrap">
+            <input type="password" id="api-key-input" placeholder="Paste your key here...">
+            <button class="toggle-vis" onclick="toggleKeyVis()" title="Show/hide key">👁</button>
+          </div>
+        </div>
+        <div class="row gap-8">
+          <button class="btn btn-primary" onclick="saveApiKey()">💾 Save Key</button>
+          <button class="btn btn-secondary" onclick="testConnection()" id="test-btn">🔌 Test Connection</button>
+          <button class="btn btn-danger btn-sm" onclick="clearApiKey()">🗑 Clear Key</button>
+        </div>
+        <div class="test-result" id="test-result"></div>
+      </div>
+    </div>
+
+    <!-- Export / Import -->
+    <div class="card">
+      <div class="card-title">📦 Export & Import Data</div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;">Use this to move your data between computers, or as a backup.</p>
+      <div class="data-actions">
+        <div class="data-action-card">
+          <div class="data-action-icon">⬇️</div>
+          <div class="data-action-title">Export Data</div>
+          <div class="data-action-desc">Download all your concepts, categories and progress as a JSON file.</div>
+          <button class="btn btn-primary" style="width:100%" onclick="exportData()">Export JSON</button>
+        </div>
+        <div class="data-action-card">
+          <div class="data-action-icon">⬆️</div>
+          <div class="data-action-title">Import Data</div>
+          <div class="data-action-desc">Load a previously exported JSON file to restore or merge your data.</div>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+          <button class="btn btn-secondary" style="width:100%;border-color:var(--accent2);color:var(--accent2);" onclick="document.getElementById('import-file').click()">Import JSON</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="card" style="border-color:rgba(239,68,68,0.2);">
+      <div class="card-title" style="color:#f87171;">⚠️ Danger Zone</div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;">This will permanently delete all your concepts, categories, and progress. Export first if you want a backup.</p>
+      <button class="btn btn-danger" onclick="resetAllData()">🗑 Reset All Data</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const STORAGE_KEY = 'braindeck_v2';
+const SETTINGS_KEY = 'braindeck_settings';
+
+const BUILTIN = [
+  {id:'ai',      emoji:'🤖', name:'AI/ML Concepts',    builtin:true},
+  {id:'vocab',   emoji:'📖', name:'English Vocabulary', builtin:true},
+  {id:'workflow',emoji:'🔄', name:'Project Workflows',  builtin:true},
+  {id:'term',    emoji:'💼', name:'Professional Terms', builtin:true},
+];
+
+const PROVIDERS = [
+  { id:'claude',   name:'Claude',    logo:'🟠', company:'Anthropic',  model:'claude-sonnet-4-20250514', keyPrefix:'sk-ant-', docsUrl:'https://console.anthropic.com/', hint:'Get your key from console.anthropic.com → API Keys' },
+  { id:'openai',   name:'OpenAI',    logo:'🟢', company:'OpenAI',     model:'gpt-4o',                   keyPrefix:'sk-',     docsUrl:'https://platform.openai.com/',   hint:'Get your key from platform.openai.com → API keys' },
+  { id:'gemini',   name:'Gemini',    logo:'🔵', company:'Google',     model:'gemini-1.5-pro',           keyPrefix:'AIza',    docsUrl:'https://aistudio.google.com/',   hint:'Get your key from aistudio.google.com → Get API key' },
+  { id:'grok',     name:'Grok',      logo:'⚫', company:'xAI',        model:'grok-beta',                keyPrefix:'xai-',    docsUrl:'https://console.x.ai/',          hint:'Get your key from console.x.ai → API Keys' },
+  { id:'deepseek', name:'DeepSeek',  logo:'🐋', company:'DeepSeek',   model:'deepseek-chat',            keyPrefix:'sk-',     docsUrl:'https://platform.deepseek.com/', hint:'Get your key from platform.deepseek.com → API keys' },
+  { id:'mistral',  name:'Mistral',   logo:'🌊', company:'Mistral AI', model:'mistral-large-latest',     keyPrefix:'',        docsUrl:'https://console.mistral.ai/',    hint:'Get your key from console.mistral.ai → API Keys' },
+];
+
+const EMOJIS = ['🧠','🤖','🌐','⚡','🔥','🎯','🚀','💡','🛠','📦','🎨','🔬','📊','💬','🤝','📱','🏗','🧩','🌱','💻','📝','🔐','🎮','🌍','🦾','⚙️','🗂','🏆','🔑','🧪'];
+
+function loadData() {
+  try { const r=localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); } catch(e){}
+  return {concepts:[],customCats:[],stats:{quizzed:0,correct:0,streak:0,lastDate:null}};
+}
+function saveData(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}
+
+function loadSettings() {
+  try { const r=localStorage.getItem(SETTINGS_KEY); if(r) return JSON.parse(r); } catch(e){}
+  return {activeProvider:'claude', keys:{}};
+}
+function saveSettings(s){localStorage.setItem(SETTINGS_KEY,JSON.stringify(s));}
+
+let D = loadData();
+let S = loadSettings();
+if(!D.customCats) D.customCats=[];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function allCats(){return [...BUILTIN,...D.customCats];}
+function getCat(id){return allCats().find(c=>c.id===id)||{emoji:'📌',name:id};}
+function getProvider(){return PROVIDERS.find(p=>p.id===S.activeProvider)||PROVIDERS[0];}
+function getApiKey(){return S.keys[S.activeProvider]||'';}
+function hasApiKey(){return !!getApiKey();}
+
+function showToast(m,dur=2800){
+  const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+// ============================================================
+// UNIVERSAL AI CALL
+// ============================================================
+async function callAI(messages, system, maxTokens=600) {
+  const prov = getProvider();
+  const key = getApiKey();
+  if(!key) throw new Error('NO_KEY');
+
+  // ---- Claude (Anthropic) ----
+  if(prov.id === 'claude') {
+    const body = {model:prov.model, max_tokens:maxTokens, system, messages};
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}
+      ,body:JSON.stringify(body)
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error.message||'Claude error');
+    return d.content.map(b=>b.text||'').join('');
+  }
+
+  // ---- OpenAI ----
+  if(prov.id === 'openai') {
+    const msgs = system ? [{role:'system',content:system},...messages] : messages;
+    const res = await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:prov.model, max_tokens:maxTokens, messages:msgs})
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error.message||'OpenAI error');
+    return d.choices[0].message.content;
+  }
+
+  // ---- Gemini ----
+  if(prov.id === 'gemini') {
+    const parts = messages.map(m=>({role:m.role==='assistant'?'model':'user', parts:[{text:m.content}]}));
+    const body = {
+      systemInstruction: system ? {parts:[{text:system}]} : undefined,
+      contents: parts,
+      generationConfig:{maxOutputTokens:maxTokens}
+    };
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${prov.model}:generateContent?key=${key}`,{
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error.message||'Gemini error');
+    return d.candidates[0].content.parts.map(p=>p.text||'').join('');
+  }
+
+  // ---- Grok (xAI — OpenAI-compatible) ----
+  if(prov.id === 'grok') {
+    const msgs = system ? [{role:'system',content:system},...messages] : messages;
+    const res = await fetch('https://api.x.ai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:prov.model, max_tokens:maxTokens, messages:msgs})
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error.message||d.error||'Grok error');
+    return d.choices[0].message.content;
+  }
+
+  // ---- DeepSeek (OpenAI-compatible) ----
+  if(prov.id === 'deepseek') {
+    const msgs = system ? [{role:'system',content:system},...messages] : messages;
+    const res = await fetch('https://api.deepseek.com/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:prov.model, max_tokens:maxTokens, messages:msgs})
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error.message||'DeepSeek error');
+    return d.choices[0].message.content;
+  }
+
+  // ---- Mistral ----
+  if(prov.id === 'mistral') {
+    const msgs = system ? [{role:'system',content:system},...messages] : messages;
+    const res = await fetch('https://api.mistral.ai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:prov.model, max_tokens:maxTokens, messages:msgs})
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error.message||'Mistral error');
+    return d.choices[0].message.content;
+  }
+
+  throw new Error('Unknown provider');
+}
+
+// ============================================================
+// SETTINGS UI
+// ============================================================
+function buildProviderGrid() {
+  const grid = document.getElementById('provider-grid'); if(!grid) return;
+  grid.innerHTML = PROVIDERS.map(p => {
+    const hasKey = !!S.keys[p.id];
+    const isActive = S.activeProvider === p.id;
+    return `<div class="provider-card ${isActive?'active-provider':''}" onclick="selectProvider('${p.id}')" id="pcard-${p.id}">
+      <span class="provider-status ${hasKey?'status-set':'status-unset'}">${hasKey?'✓ Key saved':'No key'}</span>
+      <div class="provider-card-top">
+        <span class="provider-logo">${p.logo}</span>
+        <div><div class="provider-name">${p.name}</div><div class="provider-model">${p.company}</div></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);">Model: ${p.model}</div>
+      ${isActive?`<div class="active-check">✓ Active</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function selectProvider(id) {
+  S.activeProvider = id;
+  saveSettings(S);
+  buildProviderGrid();
+  updateKeySection();
+  updateHeaderBadge();
+}
+
+function updateKeySection() {
+  const p = getProvider();
+  document.getElementById('selected-provider-name').textContent = p.name;
+  document.getElementById('key-help-text').innerHTML = `${p.hint}. <a href="${p.docsUrl}" target="_blank" style="color:var(--accent2);">Open ${p.name} Console →</a>`;
+  const inp = document.getElementById('api-key-input');
+  inp.value = S.keys[p.id] || '';
+  inp.placeholder = `Paste your ${p.name} API key here...`;
+}
+
+function toggleKeyVis() {
+  const inp = document.getElementById('api-key-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if(!key) { showToast('⚠️ Paste your API key first'); return; }
+  if(!S.keys) S.keys={};
+  S.keys[S.activeProvider] = key;
+  saveSettings(S);
+  buildProviderGrid();
+  updateHeaderBadge();
+  showToast(`✅ ${getProvider().name} key saved!`);
+}
+
+function clearApiKey() {
+  delete S.keys[S.activeProvider];
+  saveSettings(S);
+  document.getElementById('api-key-input').value='';
+  buildProviderGrid();
+  updateHeaderBadge();
+  showToast(`🗑 Key cleared`);
+}
+
+async function testConnection() {
+  const btn = document.getElementById('test-btn');
+  const res = document.getElementById('test-result');
+  if(!hasApiKey()){showToast('⚠️ Save an API key first');return;}
+  btn.disabled=true; btn.textContent='Testing...';
+  res.style.display='none';
+  try {
+    const reply = await callAI([{role:'user',content:'Say exactly: "BrainDeck connected!" and nothing else.'}],'You are a test assistant.',100);
+    res.className='test-result ok'; res.textContent='✅ Connected! Response: '+reply.trim();
+  } catch(e) {
+    res.className='test-result fail'; res.textContent='❌ Failed: '+(e.message||'Unknown error. Check your key.');
+  }
+  res.style.display='block';
+  btn.disabled=false; btn.textContent='🔌 Test Connection';
+}
+
+function updateHeaderBadge() {
+  const dot = document.getElementById('header-dot');
+  const label = document.getElementById('header-provider');
+  if(hasApiKey()) {
+    dot.className='provider-dot connected';
+    label.textContent = getProvider().name + ' ✓';
+  } else {
+    dot.className='provider-dot';
+    label.textContent = 'No AI set';
+  }
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function exportData() {
+  const payload = { version:2, exported: new Date().toISOString(), data: D };
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`braindeck-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('✅ Data exported!');
+}
+
+function importData(event) {
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const incoming = parsed.data || parsed;
+      if(!incoming.concepts) { showToast('❌ Invalid file format'); return; }
+      // Merge: add concepts not already present (by term)
+      const existingTerms = new Set(D.concepts.map(c=>c.term.toLowerCase()));
+      let added = 0;
+      incoming.concepts.forEach(c => {
+        if(!existingTerms.has(c.term.toLowerCase())) { D.concepts.push(c); added++; }
+      });
+      // Merge custom cats
+      const existingCatIds = new Set(D.customCats.map(c=>c.id));
+      (incoming.customCats||[]).forEach(c=>{ if(!existingCatIds.has(c.id)) D.customCats.push(c); });
+      saveData(D); buildSelects();
+      showToast(`✅ Imported ${added} new concepts!`);
+    } catch(err) { showToast('❌ Could not read file'); }
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+function resetAllData() {
+  if(!confirm('This will delete ALL your concepts, categories, and progress. Are you sure?')) return;
+  D = {concepts:[],customCats:[],stats:{quizzed:0,correct:0,streak:0,lastDate:null}};
+  saveData(D); buildSelects(); updateStreak();
+  showToast('🗑 All data cleared');
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function switchTab(tab, btn) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+tab).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(tab==='library') renderLibrary();
+  if(tab==='stats') renderStats();
+  if(tab==='categories') renderCatGrid();
+  if(tab==='settings') { buildProviderGrid(); updateKeySection(); }
+  // Show warnings if no key
+  const nw = document.getElementById('no-ai-warn');
+  const qw = document.getElementById('quiz-no-ai-warn');
+  if(nw) nw.style.display = hasApiKey()?'none':'block';
+  if(qw) qw.style.display = hasApiKey()?'none':'block';
+}
+
+// ============================================================
+// SELECTS
+// ============================================================
+function buildSelects() {
+  const cats = allCats();
+  const addSel = document.getElementById('add-category');
+  if(addSel){const v=addSel.value;addSel.innerHTML='';cats.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.emoji} ${c.name}`;addSel.appendChild(o);});if(v)addSel.value=v;}
+  ['quiz-category','filter-cat'].forEach(sid=>{
+    const el=document.getElementById(sid);if(!el)return;
+    const v=el.value;el.innerHTML='<option value="all">🗂 All Categories</option>';
+    cats.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.emoji} ${c.name}`;el.appendChild(o);});
+    if(v)el.value=v;
+  });
+}
+
+function buildEmojiPicker() {
+  const p=document.getElementById('emoji-picker');if(!p)return;p.innerHTML='';
+  EMOJIS.forEach(em=>{
+    const s=document.createElement('span');s.className='emoji-opt';s.textContent=em;
+    s.onclick=()=>{document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));s.classList.add('selected');document.getElementById('custom-emoji').value=em;};
+    p.appendChild(s);
+  });
+}
+
+// ============================================================
+// MODE SELECT
+// ============================================================
+function selectMode(m) {
+  document.getElementById('mode-type').classList.toggle('selected',m==='type');
+  document.getElementById('mode-chat').classList.toggle('selected',m==='chat');
+  document.getElementById('type-mode').style.display=m==='type'?'block':'none';
+  document.getElementById('chat-mode').style.display=m==='chat'?'block':'none';
+  const nw=document.getElementById('no-ai-warn');
+  if(nw) nw.style.display=hasApiKey()?'none':'block';
+  if(m==='chat'&&!document.getElementById('extract-chat').children.length) initExtractChat();
+}
+
+// ============================================================
+// CATEGORIES
+// ============================================================
+function renderCatGrid() {
+  const grid=document.getElementById('cat-grid');
+  grid.innerHTML=allCats().map(c=>{
+    const count=D.concepts.filter(x=>x.category===c.id).length;
+    return `<div class="cat-chip">
+      <div class="cat-chip-left"><span style="font-size:1.3rem">${c.emoji}</span>
+        <div><div class="cat-chip-name">${c.name}</div><div class="cat-chip-count">${count} concept${count!==1?'s':''}</div></div>
+      </div>
+      ${c.builtin?`<span class="builtin-label">built-in</span>`:`<button class="btn btn-danger btn-sm" onclick="deleteCat('${c.id}')">✕</button>`}
+    </div>`;
+  }).join('');
+}
+
+function addCategory() {
+  const emoji=document.getElementById('custom-emoji').value.trim()||'📌';
+  const name=document.getElementById('new-cat-name').value.trim();
+  if(!name){showToast('⚠️ Enter a category name');return;}
+  D.customCats.push({id:'c_'+Date.now(),emoji,name,builtin:false});
+  saveData(D);buildSelects();renderCatGrid();
+  document.getElementById('new-cat-name').value='';
+  document.getElementById('custom-emoji').value='';
+  document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));
+  showToast(`✅ "${name}" added!`);
+}
+
+function deleteCat(id) {
+  const n=D.concepts.filter(c=>c.category===id).length;
+  if(n>0){showToast(`⚠️ Remove ${n} concept(s) in this category first`);return;}
+  const cat=getCat(id);
+  D.customCats=D.customCats.filter(c=>c.id!==id);
+  saveData(D);buildSelects();renderCatGrid();
+  showToast(`🗑 Removed "${cat.name}"`);
+}
+
+// ============================================================
+// ADD CONCEPT
+// ============================================================
+function addConcept() {
+  const term=document.getElementById('add-term').value.trim();
+  const desc=document.getElementById('add-desc').value.trim();
+  const cat=document.getElementById('add-category').value;
+  const conf=parseInt(document.getElementById('add-confidence').value);
+  if(!term||!desc){showToast('⚠️ Add a term and description');return;}
+  D.concepts.push({id:Date.now(),term,desc,category:cat,confidence:conf,added:new Date().toISOString(),quizCount:0});
+  saveData(D);
+  document.getElementById('add-term').value='';
+  document.getElementById('add-desc').value='';
+  showToast('✅ Saved: '+term);
+}
+
+// ============================================================
+// EXTRACT CHAT
+// ============================================================
+let extractMsgs=[];
+
+function initExtractChat() {
+  extractMsgs=[];
+  addMsg('extract-chat','ai',"Hey! 👋 Tell me about what you worked on or learned today. Just talk naturally — any new words, AI concepts, tools, or ideas you came across. I'll help pull them out and save them!");
+}
+
+function addMsg(chatId,role,text) {
+  const chat=document.getElementById(chatId);
+  const d=document.createElement('div');d.className=`msg ${role}`;
+  d.innerHTML=`<div class="msg-label">${role==='ai'?'🤖 BrainDeck':'👤 You'}</div><div class="msg-bubble">${text}</div>`;
+  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+}
+
+function showTyping(chatId) {
+  const chat=document.getElementById(chatId);
+  const d=document.createElement('div');d.className='msg ai';d.id='typing-'+chatId;
+  d.innerHTML=`<div class="msg-label">🤖 BrainDeck</div><div class="msg-bubble typing"><span></span><span></span><span></span></div>`;
+  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+}
+function removeTyping(chatId){const e=document.getElementById('typing-'+chatId);if(e)e.remove();}
+
+async function sendExtractMessage() {
+  if(!hasApiKey()){showToast('⚠️ Set up your API key in ⚙️ Settings first');return;}
+  const inp=document.getElementById('extract-input');
+  const text=inp.value.trim();if(!text)return;
+  inp.value='';
+  addMsg('extract-chat','user',text);
+  extractMsgs.push({role:'user',content:text});
+  showTyping('extract-chat');
+  const catList=allCats().map(c=>`"${c.id}"=${c.emoji}${c.name}`).join(', ');
+  const sys=`You are BrainDeck, a warm encouraging learning companion for a 3D artist switching to AI. Help them capture what they learned each day.
+1. Have a friendly conversation to find out what they learned.
+2. Identify concepts, terms, vocabulary, tools, or workflows they mention.
+3. Ask 1-2 follow-up questions if needed.
+4. After 2-4 exchanges, summarize and ask to save.
+5. When saving, add at the END of your message:
+SAVE:{"concepts":[{"term":"...","desc":"...","category":"CATEGORY_ID","confidence":1-4}]}
+Available categories: ${catList}
+Confidence: 1=just heard, 2=confused, 3=getting there, 4=got it. Be warm, never judgmental.`;
+  try {
+    const full=await callAI(extractMsgs,sys,1000);
+    removeTyping('extract-chat');
+    const match=full.match(/SAVE:({"concepts"[\s\S]*?})\s*$/);
+    const display=full.replace(/SAVE:\{[\s\S]*\}\s*$/,'').trim();
+    addMsg('extract-chat','ai',display);
+    extractMsgs.push({role:'assistant',content:full});
+    if(match){
+      try{
+        const p=JSON.parse(match[1]);
+        if(p.concepts?.length>0){
+          p.concepts.forEach(c=>D.concepts.push({id:Date.now()+Math.random(),term:c.term,desc:c.desc,category:c.category,confidence:c.confidence,added:new Date().toISOString(),quizCount:0}));
+          saveData(D);showToast(`✅ Saved ${p.concepts.length} concept(s)!`);
+        }
+      }catch(e){}
+    }
+  } catch(e) {
+    removeTyping('extract-chat');
+    if(e.message==='NO_KEY') addMsg('extract-chat','ai','⚠️ Please set up your API key in ⚙️ Settings first.');
+    else addMsg('extract-chat','ai','Connection issue: '+e.message+'. Check your API key in ⚙️ Settings.');
+  }
+}
+
+function resetExtractChat(){document.getElementById('extract-chat').innerHTML='';extractMsgs=[];initExtractChat();}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){
+    if(document.activeElement.id==='extract-input'){e.preventDefault();sendExtractMessage();}
+    if(document.activeElement.id==='quiz-input'){e.preventDefault();submitAnswer();}
+  }
+});
+
+// ============================================================
+// QUIZ
+// ============================================================
+let qConcepts=[],qIdx=0,qMsgs=[];
+
+function startQuiz() {
+  if(!hasApiKey()){showToast('⚠️ Set up your API key in ⚙️ Settings first');return;}
+  const cat=document.getElementById('quiz-category').value;
+  let pool=D.concepts.filter(c=>cat==='all'||c.category===cat);
+  if(!pool.length){showToast('⚠️ No concepts in this category yet!');return;}
+  pool.sort((a,b)=>(a.confidence+a.quizCount)-(b.confidence+b.quizCount));
+  qConcepts=shuffle(pool).slice(0,Math.min(10,pool.length));
+  qIdx=0;
+  document.getElementById('quiz-setup').style.display='none';
+  document.getElementById('quiz-active').style.display='block';
+  loadQ();
+}
+
+function loadQ() {
+  qMsgs=[];
+  const c=qConcepts[qIdx],style=document.getElementById('quiz-style').value;
+  document.getElementById('q-num').textContent=`${qIdx+1}/${qConcepts.length}`;
+  document.getElementById('quiz-chat').innerHTML='';
+  document.getElementById('quiz-input').value='';
+  const cat=getCat(c.category);
+  document.getElementById('q-tag').textContent=`${cat.emoji} ${cat.name}`;
+  let q='';
+  if(style==='explain') q=`Explain in your own words: What is "${c.term}"?`;
+  else if(style==='use') q=`Use the term "${c.term}" in a sentence as if explaining it to a colleague.`;
+  else q=`Quick! What does "${c.term}" mean?`;
+  document.getElementById('quiz-question').textContent=q;
+  qMsgs.push({role:'user',content:`[QUIZ] Concept:"${c.term}" Meaning:"${c.desc}" Question:"${q}" Wait for answer.`});
+}
+
+async function submitAnswer() {
+  const inp=document.getElementById('quiz-input'),answer=inp.value.trim();if(!answer)return;
+  inp.value='';
+  const c=qConcepts[qIdx],chat=document.getElementById('quiz-chat');
+  const ud=document.createElement('div');ud.className='msg user';
+  ud.innerHTML=`<div class="msg-label">👤 You</div><div class="msg-bubble">${answer}</div>`;
+  chat.appendChild(ud);chat.scrollTop=chat.scrollHeight;
+  qMsgs.push({role:'user',content:answer});
+  showTyping('quiz-chat');
+  const sys=`You are BrainDeck, an encouraging quiz coach. Concept:"${c.term}" Correct meaning:"${c.desc}". Evaluate warmly and briefly (3-5 sentences). Be encouraging. End with RESULT:correct or RESULT:partial or RESULT:wrong`;
+  try {
+    const full=await callAI(qMsgs,sys,400);
+    removeTyping('quiz-chat');
+    const rm=full.match(/RESULT:(correct|partial|wrong)/i);
+    const display=full.replace(/RESULT:(correct|partial|wrong)/i,'').trim();
+    const result=rm?rm[1].toLowerCase():'partial';
+    const ad=document.createElement('div');ad.className='msg ai';
+    const rc=result==='correct'?'result-correct':result==='wrong'?'result-wrong':'result-partial';
+    ad.innerHTML=`<div class="msg-label">🤖 BrainDeck</div><div class="msg-bubble ${rc}">${display}</div>`;
+    chat.appendChild(ad);chat.scrollTop=chat.scrollHeight;
+    qMsgs.push({role:'assistant',content:full});
+    D.stats.quizzed++;
+    if(result==='correct'){D.stats.correct++;qConcepts[qIdx].confidence=Math.min(4,(qConcepts[qIdx].confidence||1)+1);}
+    else if(result==='wrong') qConcepts[qIdx].confidence=Math.max(1,(qConcepts[qIdx].confidence||2)-1);
+    qConcepts[qIdx].quizCount++;
+    const i=D.concepts.findIndex(x=>x.id===qConcepts[qIdx].id);
+    if(i!==-1){D.concepts[i].confidence=qConcepts[qIdx].confidence;D.concepts[i].quizCount=qConcepts[qIdx].quizCount;}
+    saveData(D);updateStreak();
+    const nd=document.createElement('div');nd.style.cssText='text-align:right;margin-top:10px;';
+    nd.innerHTML=qIdx<qConcepts.length-1?`<button class="btn btn-primary" onclick="nextQ()">Next Question →</button>`:`<button class="btn btn-primary" onclick="endQuiz()">🎉 Finish Quiz</button>`;
+    chat.appendChild(nd);chat.scrollTop=chat.scrollHeight;
+  } catch(e){
+    removeTyping('quiz-chat');
+    const ed=document.createElement('div');ed.className='msg ai';
+    ed.innerHTML=`<div class="msg-label">🤖 BrainDeck</div><div class="msg-bubble">Connection issue. Check your API key in ⚙️ Settings.</div>`;
+    chat.appendChild(ed);
+  }
+}
+
+async function askHint() {
+  const c=qConcepts[qIdx];showTyping('quiz-chat');
+  try {
+    const text=await callAI([{role:'user',content:'Give me a hint!'}],`Give a 1-2 sentence hint about "${c.term}" (meaning:"${c.desc}") without revealing the full answer.`,120);
+    removeTyping('quiz-chat');
+    const d=document.createElement('div');d.className='msg ai';
+    d.innerHTML=`<div class="msg-label">🤖 BrainDeck</div><div class="msg-bubble">💡 ${text}</div>`;
+    document.getElementById('quiz-chat').appendChild(d);
+  }catch(e){removeTyping('quiz-chat');}
+}
+
+function nextQ(){qIdx++;loadQ();}
+function skipQuestion(){if(qIdx<qConcepts.length-1){qIdx++;loadQ();}else endQuiz();}
+function endQuiz(){document.getElementById('quiz-setup').style.display='block';document.getElementById('quiz-active').style.display='none';showToast('Quiz done! Great work 💪');}
+
+// ============================================================
+// LIBRARY
+// ============================================================
+function renderLibrary() {
+  const s=document.getElementById('search-input').value.toLowerCase();
+  const cat=document.getElementById('filter-cat').value;
+  const filtered=D.concepts.filter(c=>(cat==='all'||c.category===cat)&&(c.term.toLowerCase().includes(s)||c.desc.toLowerCase().includes(s))).sort((a,b)=>new Date(b.added)-new Date(a.added));
+  const list=document.getElementById('library-list');
+  if(!filtered.length){list.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><p>Nothing here yet!<br>Go to "Learn" to save your first concept.</p></div>`;return;}
+  const conf={1:'🌱 Just heard',2:'🤔 Bit confused',3:'👍 Getting there',4:'💪 Got it!'};
+  list.innerHTML=filtered.map(c=>{
+    const ct=getCat(c.category);
+    return `<div class="learned-item">
+      <div class="learned-item-body">
+        <div class="learned-item-title">${c.term}</div>
+        <div class="learned-item-desc">${c.desc}</div>
+        <div class="learned-item-meta">
+          <span class="tag">${ct.emoji} ${ct.name}</span>
+          <span style="font-size:0.8rem">${conf[c.confidence]||'🌱'}</span>
+          <span style="font-size:0.72rem;color:var(--muted)">${new Date(c.added).toLocaleDateString()}</span>
+          ${c.quizCount>0?`<span style="font-size:0.75rem;color:var(--accent2);">Quizzed ${c.quizCount}x</span>`:''}
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteConcept(${c.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+function deleteConcept(id){D.concepts=D.concepts.filter(c=>c.id!==id);saveData(D);renderLibrary();showToast('🗑 Removed');}
+
+// ============================================================
+// STATS
+// ============================================================
+function renderStats() {
+  document.getElementById('stat-total').textContent=D.concepts.length;
+  document.getElementById('stat-quizzed').textContent=D.stats.quizzed;
+  document.getElementById('stat-correct').textContent=D.stats.correct;
+  document.getElementById('stat-streak').textContent=D.stats.streak;
+  const bd=document.getElementById('cat-breakdown');
+  bd.innerHTML=allCats().map(c=>{
+    const n=D.concepts.filter(x=>x.category===c.id).length;
+    const pct=D.concepts.length?Math.round(n/D.concepts.length*100):0;
+    return `<div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:6px;"><span>${c.emoji} ${c.name}</span><span style="color:var(--muted)">${n} concepts</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div></div>`;
+  }).join('');
+  const weak=[...D.concepts].filter(c=>c.confidence<=2).sort((a,b)=>a.confidence-b.confidence).slice(0,5);
+  const we=document.getElementById('weak-list');
+  if(!weak.length){we.innerHTML=`<div style="color:var(--muted);font-size:0.85rem;">No weak concepts right now — keep it up! 🎉</div>`;return;}
+  we.innerHTML=weak.map(c=>{const ct=getCat(c.category);return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span class="tag">${ct.emoji} ${c.term}</span><span style="font-size:0.82rem;color:var(--muted);flex:1">${c.desc.slice(0,80)}${c.desc.length>80?'...':''}</span><span>${c.confidence===1?'🌱':'🤔'}</span></div>`;}).join('');
+}
+
+// ============================================================
+// STREAK
+// ============================================================
+function updateStreak() {
+  const today=new Date().toDateString();
+  if(D.stats.lastDate!==today){
+    const yest=new Date(Date.now()-86400000).toDateString();
+    D.stats.streak=D.stats.lastDate===yest?D.stats.streak+1:1;
+    D.stats.lastDate=today;saveData(D);
+  }
+  document.getElementById('streak-count').textContent=D.stats.streak;
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+buildSelects();
+buildEmojiPicker();
+updateStreak();
+updateHeaderBadge();
+
+// Seed sample concept
+if(!D.concepts.length){
+  D.concepts.push({id:1,term:"RAG (Retrieval-Augmented Generation)",desc:"A technique where an AI model searches a knowledge base to find relevant info before answering. Instead of relying only on training data, it first 'retrieves' fresh, relevant content.",category:"ai",confidence:3,added:new Date().toISOString(),quizCount:0});
+  saveData(D);
+}
+</script>
+</body>
+</html>

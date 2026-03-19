@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KnowledgeVault</title>
+
+<!-- PWA -->
+<meta name="application-name" content="KnowledgeVault">
+<meta name="description" content="Personal Learning System — master concepts for life">
+<meta name="theme-color" content="#0e0f13" id="theme-color-meta">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KnowledgeVault">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" id="pwa-manifest">
+
+<!-- PWA Icons (inline SVG as data URI) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%230e0f13'/><text y='130' x='96' text-anchor='middle' font-size='110' font-family='serif'>📚</text></svg>">
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0e0f13; --bg2:#15161c; --bg3:#1c1d26; --bg4:#23242f;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --text:#e8e6df; --text2:#9b9891; --text3:#5e5d58;
+  --accent:#d4a853; --accent2:#b8893a; --accent-bg:rgba(212,168,83,0.1);
+  --green:#4caf7d; --green-bg:rgba(76,175,125,0.12);
+  --red:#e05c5c; --red-bg:rgba(224,92,92,0.12);
+  --blue:#5b9cf6; --blue-bg:rgba(91,156,246,0.1);
+  --purple:#a78bfa; --purple-bg:rgba(167,139,250,0.1);
+  --orange:#f5935a; --orange-bg:rgba(245,147,90,0.1);
+  --r:12px; --rs:8px; --t:all 0.2s ease;
+}
+body.light {
+  --bg:#f4f3ef; --bg2:#ffffff; --bg3:#eeede8; --bg4:#e5e4de;
+  --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.14);
+  --text:#1a1a18; --text2:#5c5b56; --text3:#9b9891;
+  --accent:#b8893a; --accent2:#9a6e28; --accent-bg:rgba(184,137,58,0.1);
+  --green:#2a7a50; --green-bg:rgba(42,122,80,0.1);
+  --red:#c44040; --red-bg:rgba(196,64,64,0.1);
+  --blue:#2255b8; --blue-bg:rgba(34,85,184,0.08);
+  --purple:#6d48c4; --purple-bg:rgba(109,72,196,0.1);
+  --orange:#c4622a; --orange-bg:rgba(196,98,42,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;transition:background .3s,color .3s;}
+#app{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+#sidebar{width:230px;min-width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;transition:background .3s;}
+.logo{padding:22px 18px 16px;border-bottom:1px solid var(--border);}
+.logo-row{display:flex;align-items:center;justify-content:space-between;}
+.logo-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--accent);}
+.logo-sub{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;}
+nav{padding:10px 8px;flex:1;}
+.nav-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);padding:10px 10px 4px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:var(--rs);cursor:pointer;color:var(--text2);font-size:13.5px;transition:var(--t);margin-bottom:1px;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--accent-bg);color:var(--accent);font-weight:500;}
+.nav-icon{font-size:15px;width:18px;text-align:center;}
+.sidebar-footer{padding:14px 10px;border-top:1px solid var(--border);}
+.streak-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;}
+.streak-num{font-family:'DM Serif Display',serif;font-size:26px;color:var(--accent);line-height:1;}
+.streak-lbl{font-size:10px;color:var(--text3);margin-top:1px;}
+.streak-dots{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap;}
+.sd{width:9px;height:9px;border-radius:50%;background:var(--bg4);}
+.sd.done{background:var(--accent);}
+.sd.today{background:var(--green);}
+
+/* MAIN */
+#main{flex:1;overflow-y:auto;}
+.page{display:none;padding:28px 32px;max-width:980px;}
+.page.active{display:block;}
+.ph{margin-bottom:24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.pt{font-family:'DM Serif Display',serif;font-size:26px;line-height:1.2;}
+.ps{font-size:13px;color:var(--text2);margin-top:3px;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--rs);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:var(--t);text-decoration:none;}
+.btn-p{background:var(--accent);color:#1a1200;}
+.btn-p:hover{background:var(--accent2);}
+.btn-g{background:transparent;color:var(--text2);border:1px solid var(--border2);}
+.btn-g:hover{background:var(--bg3);color:var(--text);}
+.btn-d{background:var(--red-bg);color:var(--red);border:1px solid rgba(224,92,92,0.2);}
+.btn-d:hover{background:rgba(224,92,92,0.22);}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* THEME TOGGLE */
+.theme-btn{background:none;border:1px solid var(--border2);border-radius:var(--rs);color:var(--text2);cursor:pointer;padding:5px 9px;font-size:15px;transition:var(--t);line-height:1;}
+.theme-btn:hover{background:var(--bg3);}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;transition:background .3s;}
+.card+.card{margin-top:10px;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:24px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;}
+.stat-n{font-family:'DM Serif Display',serif;font-size:34px;color:var(--accent);line-height:1;}
+.stat-l{font-size:11px;color:var(--text2);margin-top:2px;}
+
+/* FORM */
+.fg{margin-bottom:16px;}
+.fl{display:block;font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+.badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;text-transform:uppercase;letter-spacing:.5px;margin-left:5px;vertical-align:middle;}
+.badge-r{background:var(--red-bg);color:var(--red);}
+.badge-m{background:var(--accent-bg);color:var(--accent);}
+.badge-o{background:var(--bg4);color:var(--text3);}
+input[type=text],input[type=password],textarea,select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:9px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:var(--t);resize:vertical;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);background:var(--bg4);}
+textarea{min-height:76px;}
+textarea.tall{min-height:110px;}
+select option{background:var(--bg3);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.sec-div{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);padding:12px 0 6px;border-top:1px solid var(--border);margin-top:6px;}
+
+/* STARS */
+.stars-row{display:flex;gap:6px;align-items:center;}
+.star-btn{font-size:22px;cursor:pointer;color:var(--bg4);transition:var(--t);background:none;border:none;line-height:1;}
+.star-btn.active{color:var(--accent);}
+.star-btn:hover{transform:scale(1.15);}
+.conf-lbl{font-size:12px;color:var(--text2);margin-left:6px;}
+
+/* TAGS */
+.tags-wrap{display:flex;flex-wrap:wrap;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:7px 9px;min-height:42px;cursor:text;transition:var(--t);}
+.tags-wrap:focus-within{border-color:var(--accent);}
+.tag-chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent-bg);color:var(--accent);border:1px solid rgba(212,168,83,0.2);padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500;}
+.tag-chip .rm{cursor:pointer;font-size:13px;opacity:.7;}
+.tag-chip .rm:hover{opacity:1;}
+.tags-wrap input{border:none;background:transparent;outline:none;color:var(--text);font-size:13px;padding:1px 3px;min-width:80px;flex:1;}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);}
+.tab{padding:8px 16px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:var(--t);margin-bottom:-1px;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab:hover:not(.active){color:var(--text);}
+
+/* LIBRARY */
+.search-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:180px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:var(--t);}
+.search-input:focus{border-color:var(--accent);}
+.fsel{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:var(--rs);outline:none;font-family:'DM Sans',sans-serif;font-size:13px;}
+.concept-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:8px;cursor:pointer;transition:var(--t);display:flex;align-items:flex-start;gap:14px;}
+.concept-card:hover{border-color:var(--border2);background:var(--bg3);}
+.cc-body{flex:1;min-width:0;}
+.cc-title{font-family:'DM Serif Display',serif;font-size:17px;margin-bottom:3px;}
+.cc-preview{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cc-meta{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.ctag{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--bg4);color:var(--text3);}
+.conf-badge{font-size:11px;color:var(--accent);}
+.due-badge{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--blue-bg);color:var(--blue);}
+
+/* SECTION BLOCKS */
+.sec-block{margin-bottom:16px;padding:14px 16px;background:var(--bg3);border-radius:var(--rs);border-left:3px solid var(--border2);}
+.sec-block.req{border-left-color:var(--accent);}
+.sec-block.rec{border-left-color:var(--purple);}
+.sec-block.opt{border-left-color:var(--text3);}
+.sec-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:6px;}
+.sec-cnt{font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap;}
+pre.code{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);overflow-x:auto;margin-top:6px;}
+
+/* QUIZ */
+.quiz-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:26px;max-width:660px;}
+.quiz-q{font-family:'DM Serif Display',serif;font-size:21px;margin-bottom:20px;line-height:1.4;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.quiz-opt{padding:12px 16px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:14px;cursor:pointer;transition:var(--t);text-align:left;font-family:'DM Sans',sans-serif;}
+.quiz-opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-bg);}
+.quiz-opt.correct{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+.quiz-opt.wrong{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+.quiz-opt:disabled{cursor:default;}
+.qfb{padding:12px 16px;border-radius:var(--rs);font-size:13px;margin-bottom:14px;display:none;}
+.qfb.show{display:block;}
+.qfb.correct{background:var(--green-bg);color:var(--green);border:1px solid rgba(76,175,125,0.25);}
+.qfb.wrong{background:var(--red-bg);color:var(--red);border:1px solid rgba(224,92,92,0.25);}
+.qprog{display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:12px;color:var(--text2);}
+.pbar{flex:1;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+.pfill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease;}
+
+/* FLASHCARD */
+.fc-wrap{perspective:1000px;max-width:660px;margin:0 auto;}
+.fc{width:100%;min-height:260px;position:relative;transform-style:preserve-3d;transition:transform .5s ease;cursor:pointer;}
+.fc.flipped{transform:rotateY(180deg);}
+.fc-face{position:absolute;width:100%;min-height:260px;backface-visibility:hidden;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:32px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+.fc-back{transform:rotateY(180deg);}
+.fc-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:14px;}
+.fc-word{font-family:'DM Serif Display',serif;font-size:30px;color:var(--accent);margin-bottom:6px;}
+.fc-hint{font-size:12px;color:var(--text3);}
+.fc-answer{font-size:14px;color:var(--text);line-height:1.7;max-width:460px;}
+.fc-controls{display:flex;justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.rate-row{display:flex;gap:7px;justify-content:center;margin-top:12px;flex-wrap:wrap;}
+.rate-btn{padding:6px 14px;border-radius:var(--rs);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:var(--t);}
+.rate-btn:hover{border-color:var(--accent);color:var(--accent);}
+.kbd-hint{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);margin-top:8px;justify-content:center;}
+kbd{display:inline-block;padding:1px 5px;border:1px solid var(--border2);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--bg3);color:var(--text2);}
+
+/* FILL IN BLANK */
+.blank-input{display:inline-block;background:var(--bg4);border:1px solid var(--accent);border-radius:3px;padding:2px 9px;min-width:110px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;text-align:center;}
+.sentence-blk{font-size:17px;color:var(--text);line-height:2.2;margin-bottom:18px;font-family:'DM Serif Display',serif;}
+
+/* TIMER */
+.timer-bar{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:9px 14px;margin-bottom:18px;flex-wrap:wrap;}
+.timer-disp{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:500;color:var(--accent);min-width:58px;}
+.timer-disp.warn{color:var(--red);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.tpreset{padding:3px 9px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:var(--t);}
+.tpreset:hover,.tpreset.active{background:var(--accent-bg);color:var(--accent);border-color:var(--accent);}
+
+/* QUIZ MODE CARDS */
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px;}
+.mode-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px;cursor:pointer;transition:var(--t);text-align:center;}
+.mode-card:hover{border-color:var(--accent);background:var(--accent-bg);}
+.mode-icon{font-size:26px;margin-bottom:8px;}
+.mode-title{font-weight:500;font-size:14px;margin-bottom:3px;}
+.mode-desc{font-size:11px;color:var(--text2);}
+
+/* INTERVIEW / FEYNMAN */
+.interview-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:26px;max-width:660px;position:relative;overflow:hidden;}
+.interview-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--purple));}
+.type-badge{display:inline-block;font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;}
+.type-badge.def{background:var(--blue-bg);color:var(--blue);}
+.type-badge.cli{background:var(--purple-bg);color:var(--purple);}
+.type-badge.use{background:var(--green-bg);color:var(--green);}
+.feynman-compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+.fy-col-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:6px;font-weight:600;}
+.fy-text{font-size:13px;color:var(--text);line-height:1.7;background:var(--bg3);border-radius:var(--rs);padding:11px 13px;min-height:90px;}
+
+/* RELATED */
+.related-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+.rel-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;cursor:pointer;transition:var(--t);}
+.rel-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
+
+/* AI GENERATE */
+.ai-box{background:var(--bg3);border:1px dashed var(--accent);border-radius:var(--r);padding:18px;margin-bottom:18px;}
+.ai-row{display:flex;gap:9px;align-items:flex-end;}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid var(--accent-bg);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* AI STATUS */
+.ai-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;}
+.ai-dot{width:6px;height:6px;border-radius:50%;}
+.ai-badge.on{background:var(--green-bg);color:var(--green);}
+.ai-badge.on .ai-dot{background:var(--green);}
+.ai-badge.off{background:var(--bg4);color:var(--text3);}
+.ai-badge.off .ai-dot{background:var(--text3);}
+.ai-badge.api{background:var(--blue-bg);color:var(--blue);}
+.ai-badge.api .ai-dot{background:var(--blue);}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+.modal-ov.show{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:26px;max-width:700px;width:100%;max-height:88vh;overflow-y:auto;position:relative;}
+.modal-x{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--text2);font-size:19px;cursor:pointer;padding:3px 7px;border-radius:3px;}
+.modal-x:hover{background:var(--bg3);}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:11px 16px;font-size:13px;color:var(--text);z-index:9999;transform:translateY(70px);opacity:0;transition:all .3s ease;max-width:280px;}
+#toast.show{transform:translateY(0);opacity:1;}
+#toast.ok{border-left:3px solid var(--green);}
+#toast.err{border-left:3px solid var(--red);}
+
+/* SHORTCUTS */
+.sc-panel{position:fixed;bottom:72px;right:22px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:14px 16px;z-index:500;display:none;min-width:210px;box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.sc-panel.show{display:block;}
+.sc-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);}
+.sc-row:last-child{border-bottom:none;}
+.sc-fab{position:fixed;bottom:22px;right:22px;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);border-radius:50%;width:36px;height:36px;font-size:15px;cursor:pointer;z-index:400;transition:var(--t);display:flex;align-items:center;justify-content:center;}
+.sc-fab:hover{background:var(--bg3);}
+
+/* PROGRESS */
+.prog-ring{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);margin-bottom:16px;}
+
+/* DRIVE SETUP */
+.setup-step{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--border);}
+.setup-step:last-child{border-bottom:none;}
+.step-n{width:30px;height:30px;min-width:30px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;}
+.step-t{font-weight:500;margin-bottom:3px;}
+.step-d{font-size:13px;color:var(--text2);line-height:1.6;}
+code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg4);padding:2px 5px;border-radius:3px;color:var(--accent);}
+
+/* DRIVE STATUS */
+.ds{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:var(--rs);font-size:13px;font-weight:500;margin-bottom:16px;}
+.ds.ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(76,175,125,0.2);}
+.ds.no{background:var(--red-bg);color:var(--red);border:1px solid rgba(224,92,92,0.2);}
+.ds.wait{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(91,156,246,0.2);}
+
+/* EMPTY */
+.empty{text-align:center;padding:56px 20px;color:var(--text2);}
+.empty-icon{font-size:44px;margin-bottom:14px;opacity:.35;}
+.empty-title{font-size:17px;font-weight:500;margin-bottom:6px;}
+.empty-desc{font-size:13px;color:var(--text3);}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
+
+/* MODE PILLS */
+.mode-pill{display:inline-flex;align-items:center;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:var(--t);}
+.mode-pill:hover{border-color:var(--accent);color:var(--accent);}
+.mode-pill.active{background:var(--accent);color:#1a1200;border-color:var(--accent);}
+
+@media(max-width:768px){
+  #sidebar{width:54px;min-width:54px;}
+  .nav-item span:not(.nav-icon),.logo-title,.logo-sub,.streak-dots,.streak-lbl{display:none;}
+  .streak-num{font-size:16px;}
+  .page{padding:18px 14px;}
+  .grid2{grid-template-columns:1fr;}
+  .feynman-compare{grid-template-columns:1fr;}
+}
+
+/* PWA INSTALL BANNER */
+#pwa-banner {
+  display:none;
+  position:fixed;
+  bottom:70px;
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--bg2);
+  border:1px solid var(--accent);
+  border-radius:var(--r);
+  padding:14px 18px;
+  z-index:800;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  min-width:300px;
+  max-width:420px;
+  width:calc(100% - 40px);
+  animation:slideup .3s ease;
+}
+@keyframes slideup{from{transform:translateX(-50%) translateY(20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+#pwa-banner.show{display:block;}
+.pwa-banner-row{display:flex;align-items:center;gap:12px;}
+.pwa-icon{font-size:28px;}
+.pwa-text{flex:1;}
+.pwa-title{font-weight:600;font-size:14px;margin-bottom:2px;}
+.pwa-sub{font-size:12px;color:var(--text2);}
+.pwa-btns{display:flex;gap:7px;margin-top:10px;}
+.pwa-dismiss{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 5px;}
+
+/* OFFLINE INDICATOR */
+#offline-badge{
+  display:none;
+  position:fixed;
+  top:12px;
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--orange-bg);
+  color:var(--orange);
+  border:1px solid rgba(245,147,90,.3);
+  border-radius:20px;
+  padding:5px 14px;
+  font-size:12px;
+  font-weight:500;
+  z-index:900;
+}
+#offline-badge.show{display:block;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<aside id="sidebar">
+  <div class="logo">
+    <div class="logo-row">
+      <div class="logo-title">KnowledgeVault</div>
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle theme">☀️</button>
+    </div>
+    <div class="logo-sub">Personal Learning System</div>
+  </div>
+  <nav>
+    <div class="nav-sec">Learn</div>
+    <div class="nav-item active" onclick="nav('dashboard')"><span class="nav-icon">🏠</span><span>Dashboard</span></div>
+    <div class="nav-item" onclick="nav('library')"><span class="nav-icon">📚</span><span>My Library</span></div>
+    <div class="nav-item" onclick="nav('study')"><span class="nav-icon">🎯</span><span>Study</span></div>
+    <div class="nav-item" onclick="nav('interview')"><span class="nav-icon">💼</span><span>Interview Mode</span></div>
+    <div class="nav-item" onclick="nav('feynman')"><span class="nav-icon">🧠</span><span>Teach It Back</span></div>
+    <div class="nav-sec">Manage</div>
+    <div class="nav-item" onclick="nav('add')"><span class="nav-icon">✚</span><span>Add Concept</span></div>
+    <div class="nav-item" onclick="nav('settings')"><span class="nav-icon">⚙️</span><span>Settings</span></div>
+    <div class="nav-item" id="install-nav-btn" style="display:none;" onclick="installPWA()"><span class="nav-icon">⬇</span><span>Install App</span></div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="streak-card">
+      <div class="streak-num" id="sb-streak">0</div>
+      <div class="streak-lbl">day streak</div>
+      <div class="streak-dots" id="sb-dots"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════ MAIN ═══════ -->
+<main id="main">
+
+<!-- ── DASHBOARD ── -->
+<div class="page active" id="page-dashboard">
+  <div class="ph">
+    <div><div class="pt" id="dash-greeting">Good day! Keep learning. 🌱</div><div class="ps">Your personal knowledge system</div></div>
+    <div id="ai-status-area" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-n" id="s-total">0</div><div class="stat-l">Concepts saved</div></div>
+    <div class="stat-card"><div class="stat-n" id="s-streak">0</div><div class="stat-l">Day streak</div></div>
+    <div class="stat-card"><div class="stat-n" id="s-due">0</div><div class="stat-l">Due for review</div></div>
+    <div class="stat-card"><div class="stat-n" id="s-mastered">0</div><div class="stat-l">Mastered (5★)</div></div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
+    <button class="btn btn-p" onclick="nav('study')">▶ Start Studying</button>
+    <button class="btn btn-g" onclick="nav('add')">✚ Add Concept</button>
+    <button class="btn btn-g" onclick="nav('interview')">💼 Interview Mode</button>
+  </div>
+  <div class="card"><div style="font-weight:500;margin-bottom:12px;">📅 30-Day Streak</div><div id="cal" style="display:flex;gap:4px;flex-wrap:wrap;"></div></div>
+  <div class="card" style="margin-top:10px;"><div style="font-weight:500;margin-bottom:12px;">🔥 Due for Review</div><div id="due-list"></div></div>
+</div>
+
+<!-- ── LIBRARY ── -->
+<div class="page" id="page-library">
+  <div class="ph">
+    <div><div class="pt">My Library</div><div class="ps">All your saved concepts</div></div>
+    <button class="btn btn-p" onclick="nav('add')">✚ Add Concept</button>
+  </div>
+  <div class="search-bar">
+    <input class="search-input" id="q" placeholder="Search concepts, tags..." oninput="renderLib()">
+    <select class="fsel" id="ftag" onchange="renderLib()"><option value="">All categories</option></select>
+    <select class="fsel" id="fconf" onchange="renderLib()">
+      <option value="">All confidence</option>
+      <option value="1">1★ Learning</option><option value="2">2★</option><option value="3">3★</option><option value="4">4★</option><option value="5">5★ Mastered</option>
+    </select>
+  </div>
+  <div id="lib-list"></div>
+</div>
+
+<!-- ── STUDY ── -->
+<div class="page" id="page-study">
+  <div class="ph"><div><div class="pt">Study</div><div class="ps">Practice and reinforce your concepts</div></div></div>
+  <div id="study-home">
+    <div class="timer-bar">
+      <span style="font-size:13px;font-weight:500;">⏱ Focus timer:</span>
+      <div class="timer-disp" id="timer-disp">--:--</div>
+      <button class="tpreset" onclick="startTimer(15,this)">15 min</button>
+      <button class="tpreset" onclick="startTimer(25,this)">25 min</button>
+      <button class="tpreset" onclick="startTimer(45,this)">45 min</button>
+      <button class="tpreset" onclick="stopTimer()">✕</button>
+    </div>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="startMode('flashcard')"><div class="mode-icon">🃏</div><div class="mode-title">Flashcards</div><div class="mode-desc">Flip to test recall</div></div>
+      <div class="mode-card" onclick="startMode('mcq')"><div class="mode-icon">🎯</div><div class="mode-title">Multiple Choice</div><div class="mode-desc">Choose the right answer</div></div>
+      <div class="mode-card" onclick="startMode('fillin')"><div class="mode-icon">✏️</div><div class="mode-title">Fill in the Blank</div><div class="mode-desc">Complete the sentence</div></div>
+      <div class="mode-card" onclick="startMode('client')"><div class="mode-icon">💬</div><div class="mode-title">Client Explanation</div><div class="mode-desc">Explain professionally</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:13px;color:var(--text2);">Study pool:</span>
+      <select id="study-filter" class="fsel">
+        <option value="due">Due for review (spaced repetition)</option>
+        <option value="all">All concepts</option>
+        <option value="weak">Weak only (1–2★)</option>
+      </select>
+    </div>
+  </div>
+  <div id="quiz-area" style="display:none;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <button class="btn btn-g btn-sm" onclick="exitQuiz()">← Back</button>
+      <span id="quiz-mode-lbl" style="font-size:13px;color:var(--text2);font-weight:500;"></span>
+    </div>
+    <div id="quiz-content"></div>
+  </div>
+</div>
+
+<!-- ── INTERVIEW MODE ── -->
+<div class="page" id="page-interview">
+  <div class="ph"><div><div class="pt">Interview Mode</div><div class="ps">Rapid-fire questions — simulate a real client meeting or job interview</div></div></div>
+  <div id="iv-home">
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-weight:500;margin-bottom:8px;">How it works</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">You get rapid questions mixing <b style="color:var(--blue)">definitions</b>, <b style="color:var(--purple)">client explanations</b>, and <b style="color:var(--green)">real-world use cases</b>. Think about your answer, then reveal. Rate yourself honestly — it feeds spaced repetition.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+      <button class="mode-pill active" onclick="setIVcount(5,this)">5 quick</button>
+      <button class="mode-pill" onclick="setIVcount(10,this)">10 standard</button>
+      <button class="mode-pill" onclick="setIVcount(20,this)">20 full</button>
+    </div>
+    <button class="btn btn-p" style="font-size:14px;padding:11px 24px;" onclick="startInterview()">▶ Start Interview</button>
+  </div>
+  <div id="iv-area" style="display:none;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <button class="btn btn-g btn-sm" onclick="exitIV()">← Exit</button>
+      <div class="pbar" style="flex:1;"><div class="pfill" id="iv-pfill"></div></div>
+      <span id="iv-plbl" style="font-size:12px;color:var(--text2);"></span>
+    </div>
+    <div id="iv-content"></div>
+  </div>
+</div>
+
+<!-- ── FEYNMAN ── -->
+<div class="page" id="page-feynman">
+  <div class="ph"><div><div class="pt">Teach It Back</div><div class="ps">The Feynman technique — explain from memory, then compare</div></div></div>
+  <div id="fy-home">
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-weight:500;margin-bottom:8px;">The most powerful learning technique</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">Richard Feynman said: if you can't explain it simply, you don't understand it yet. You'll see a concept name, write your explanation from memory — no notes — then compare with your saved answer. Gaps in your explanation reveal gaps in your understanding.</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+      <select id="fy-filter" class="fsel">
+        <option value="all">All concepts</option>
+        <option value="weak">Weak only (1–2★)</option>
+        <option value="due">Due for review</option>
+      </select>
+    </div>
+    <button class="btn btn-p" style="font-size:14px;padding:11px 24px;" onclick="startFeynman()">🧠 Start Session</button>
+  </div>
+  <div id="fy-area" style="display:none;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <button class="btn btn-g btn-sm" onclick="exitFY()">← Exit</button>
+      <span id="fy-prog" style="font-size:13px;color:var(--text2);"></span>
+    </div>
+    <div id="fy-content"></div>
+  </div>
+</div>
+
+<!-- ── ADD CONCEPT ── -->
+<div class="page" id="page-add">
+  <div class="ph"><div><div class="pt" id="add-title">Add Concept</div><div class="ps">Build your knowledge base</div></div></div>
+  <div class="tabs" style="margin-bottom:0;">
+    <div class="tab active" id="tab-paste" onclick="switchTab('paste')">📋 Paste & Auto-detect</div>
+    <div class="tab" id="tab-manual" onclick="switchTab('manual')">✍️ Fill Manually</div>
+    <div class="tab" id="tab-ai" onclick="switchTab('ai')">✨ AI Generate</div>
+  </div>
+
+  <!-- PASTE -->
+  <div id="add-paste" style="margin-top:16px;">
+    <div class="fg"><label class="fl">Paste your concept text</label><textarea id="paste-in" class="tall" placeholder="Paste your full concept (like the Scaffold or MVP examples)..." style="min-height:150px;"></textarea></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button class="btn btn-p" onclick="parsePaste()">✨ Auto-detect sections</button>
+      <button class="btn btn-g" onclick="clearPaste()">Clear</button>
+    </div>
+    <div id="parse-ok" style="display:none;font-size:13px;color:var(--green);font-weight:500;margin-bottom:10px;">✓ Sections detected — review and edit below</div>
+  </div>
+
+  <!-- MANUAL -->
+  <div id="add-manual" style="display:none;margin-top:16px;">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">Fill in each section yourself. Required fields must be completed before saving.</div>
+  </div>
+
+  <!-- AI GENERATE -->
+  <div id="add-ai" style="display:none;margin-top:16px;">
+    <div class="ai-box">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">Type any word and AI generates a full card in your template format. Works with Ollama (local), or any API key you've added in Settings.</div>
+      <div class="ai-row">
+        <input type="text" id="ai-word" placeholder="e.g. Docker, REST API, Agile Sprint, Neural Network..." style="flex:1;" onkeydown="if(event.key==='Enter')doAIGen()">
+        <button class="btn btn-p" onclick="doAIGen()" id="ai-gen-btn">✨ Generate</button>
+      </div>
+      <div id="ai-status" style="margin-top:8px;font-size:12px;color:var(--text2);display:none;"></div>
+    </div>
+    <div id="ai-ok" style="display:none;font-size:13px;color:var(--green);font-weight:500;margin-bottom:10px;">✓ Generated! Review and edit below, then save.</div>
+  </div>
+
+  <!-- SHARED FORM -->
+  <div id="concept-form" style="display:none;margin-top:12px;">
+    <div class="sec-div">Required</div>
+    <div class="fg"><label class="fl">Word / Term <span class="badge badge-r">required</span></label><input type="text" id="f-title" placeholder="e.g. Scaffold / Scaffolding"></div>
+    <div class="grid2">
+      <div class="fg"><label class="fl">Simple Meaning <span class="badge badge-r">required</span></label><textarea id="f-simple" placeholder="Plain English explanation, no jargon..."></textarea></div>
+      <div class="fg"><label class="fl">In My Field <span class="badge badge-r">required</span></label><textarea id="f-field" placeholder="How is this used in programming / AI / data..."></textarea></div>
+    </div>
+    <div class="fg"><label class="fl">Real Example <span class="badge badge-r">required</span></label><textarea id="f-example" placeholder="Code snippet, real-world scenario, or story..."></textarea></div>
+    <div class="fg">
+      <label class="fl">My Confidence <span class="badge badge-r">required</span></label>
+      <div class="stars-row">
+        <button class="star-btn" onclick="setStars(1)">★</button><button class="star-btn" onclick="setStars(2)">★</button><button class="star-btn" onclick="setStars(3)">★</button><button class="star-btn" onclick="setStars(4)">★</button><button class="star-btn" onclick="setStars(5)">★</button>
+        <span class="conf-lbl" id="conf-lbl">Click to rate</span>
+      </div>
+    </div>
+    <div class="sec-div">Recommended</div>
+    <div class="grid2">
+      <div class="fg"><label class="fl">Say it to a Client <span class="badge badge-m">recommended</span></label><textarea id="f-client" placeholder="Professional 1-2 sentence explanation for a non-technical client..."></textarea></div>
+      <div class="fg"><label class="fl">Common Misconception <span class="badge badge-m">recommended</span></label><textarea id="f-misconception" placeholder="What do beginners get wrong about this?"></textarea></div>
+    </div>
+    <div class="fg"><label class="fl">Synonyms / Related Words <span class="badge badge-m">recommended</span></label><input type="text" id="f-synonyms" placeholder="e.g. Boilerplate, Starter template, Project skeleton..."></div>
+    <div class="sec-div">Optional</div>
+    <div class="grid2">
+      <div class="fg"><label class="fl">Why It Matters <span class="badge badge-o">optional</span></label><textarea id="f-why" placeholder="One sentence — career relevance..."></textarea></div>
+      <div class="fg"><label class="fl">Pro Tip <span class="badge badge-o">optional</span></label><textarea id="f-protip" placeholder="Advanced expert insight..."></textarea></div>
+    </div>
+    <div class="fg">
+      <label class="fl">Tags / Categories <span class="badge badge-o">optional</span></label>
+      <div class="tags-wrap" id="tags-wrap" onclick="document.getElementById('tags-in').focus()">
+        <input type="text" id="tags-in" placeholder="Type tag, press Enter..." onkeydown="handleTag(event)" style="border:none;background:transparent;outline:none;color:var(--text);font-size:13px;padding:1px 3px;min-width:80px;flex:1;">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+      <button class="btn btn-p" onclick="saveConcept()" id="save-btn">💾 Save Concept</button>
+      <button class="btn btn-g" onclick="resetForm()">Clear</button>
+    </div>
+    <div id="related-box" style="display:none;margin-top:18px;">
+      <div class="card">
+        <div style="font-size:13px;font-weight:500;margin-bottom:6px;">🔗 Related concepts to add next:</div>
+        <div class="related-chips" id="related-chips"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SETTINGS ── -->
+<div class="page" id="page-settings">
+  <div class="ph"><div><div class="pt">Settings</div><div class="ps">Google Drive sync, AI providers & preferences</div></div></div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <div style="font-weight:500;font-size:15px;margin-bottom:14px;">☁️ Google Drive Sync</div>
+    <div id="drive-status"></div>
+    <div class="fg"><label class="fl">Google Client ID</label><input type="text" id="gclient" placeholder="Paste your Google OAuth Client ID..." oninput="saveDriveCfg()"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-p" onclick="connectDrive()">🔗 Connect Google Drive</button>
+      <button class="btn btn-g" onclick="syncDrive()">↻ Sync now</button>
+      <button class="btn btn-g" onclick="exportJSON()">⬇ Export JSON</button>
+      <button class="btn btn-g" onclick="document.getElementById('import-file').click()">⬆ Import JSON</button>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none;" onchange="handleImport(event)">
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <div style="font-weight:500;font-size:15px;margin-bottom:14px;">🤖 AI Provider Settings</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">Used for AI concept generation and open-ended grading. Ollama is auto-detected. Add an API key for cloud AI on any device.</div>
+    <div class="fg"><label class="fl">Provider</label>
+      <select id="api-prov" onchange="saveAICfg()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:var(--rs);outline:none;font-family:'DM Sans',sans-serif;font-size:14px;width:100%;">
+        <option value="">None (Ollama only)</option>
+        <option value="openai">OpenAI (GPT-4 etc.)</option>
+        <option value="claude">Claude (Anthropic)</option>
+        <option value="gemini">Gemini (Google)</option>
+        <option value="groq">Groq (fast & free tier)</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">API Key</label><input type="password" id="api-key" placeholder="Paste your API key..." oninput="saveAICfg()"></div>
+    <div style="font-size:11px;color:var(--text3);">Your key is stored locally on your device only. Never sent to any server except the provider you choose.</div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:500;font-size:15px;margin-bottom:6px;">📋 Google Drive Setup Guide</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">One-time setup. Takes about 5 minutes.</div>
+    <div class="setup-step"><div class="step-n">1</div><div><div class="step-t">Go to Google Cloud Console</div><div class="step-d">Visit <a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent);">console.cloud.google.com</a> and sign in.</div></div></div>
+    <div class="setup-step"><div class="step-n">2</div><div><div class="step-t">Create a new project</div><div class="step-d">Click "New Project", name it <code>KnowledgeVault</code>, click Create.</div></div></div>
+    <div class="setup-step"><div class="step-n">3</div><div><div class="step-t">Enable Google Drive API</div><div class="step-d">APIs & Services → Library → search <code>Google Drive API</code> → Enable.</div></div></div>
+    <div class="setup-step"><div class="step-n">4</div><div><div class="step-t">Create OAuth credentials</div><div class="step-d">Credentials → Create Credentials → OAuth client ID → Web application. Add your file's local path to Authorized JavaScript origins.</div></div></div>
+    <div class="setup-step"><div class="step-n">5</div><div><div class="step-t">Copy Client ID</div><div class="step-d">Copy the Client ID (looks like <code>123456.apps.googleusercontent.com</code>) and paste it above.</div></div></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- CONCEPT MODAL -->
+<div class="modal-ov" id="c-modal">
+  <div class="modal"><button class="modal-x" onclick="closeModal()">✕</button><div id="c-modal-body"></div></div>
+</div>
+
+<!-- PWA INSTALL BANNER -->
+<div id="pwa-banner">
+  <button class="pwa-dismiss" onclick="dismissPWA()">✕</button>
+  <div class="pwa-banner-row">
+    <div class="pwa-icon">📚</div>
+    <div class="pwa-text">
+      <div class="pwa-title">Install KnowledgeVault</div>
+      <div class="pwa-sub">Add to your desktop or home screen for quick access — works offline too.</div>
+    </div>
+  </div>
+  <div class="pwa-btns">
+    <button class="btn btn-p btn-sm" onclick="installPWA()">⬇ Install App</button>
+    <button class="btn btn-g btn-sm" onclick="dismissPWA()">Not now</button>
+  </div>
+</div>
+
+<!-- OFFLINE BADGE -->
+<div id="offline-badge">📡 You are offline — data saved locally</div>
+
+<!-- SHORTCUTS PANEL -->
+<div class="sc-panel" id="sc-panel">
+  <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;">Keyboard Shortcuts</div>
+  <div class="sc-row"><span>Flip flashcard</span><kbd>Space</kbd></div>
+  <div class="sc-row"><span>Rate 1–5 stars</span><kbd>1</kbd>–<kbd>5</kbd></div>
+  <div class="sc-row"><span>Next card</span><kbd>N</kbd></div>
+  <div class="sc-row"><span>Add concept</span><kbd>A</kbd></div>
+  <div class="sc-row"><span>My Library</span><kbd>L</kbd></div>
+  <div class="sc-row"><span>Study</span><kbd>S</kbd></div>
+  <div class="sc-row"><span>Dashboard</span><kbd>D</kbd></div>
+  <div class="sc-row"><span>Show shortcuts</span><kbd>?</kbd></div>
+</div>
+<button class="sc-fab" onclick="toggleSC()" title="Keyboard shortcuts">?</button>
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const DB_KEY = 'kv3_data';
+function defData(){return{concepts:[],streak:{count:0,lastDate:null,history:[]},settings:{clientId:'',driveFileId:null,theme:'dark',apiKey:'',apiProvider:''},studiedToday:false};}
+let DB = (() => { try { const r = localStorage.getItem(DB_KEY); return r ? JSON.parse(r) : defData(); } catch(e){ return defData(); } })();
+let editingId = null, currentStars = 0, tagList = [], quizState = {}, ivState = {}, fyState = {}, ivCount = 5;
+let timerInterval = null, timerSecs = 0;
+
+function saveLocal(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+function save(){ saveLocal(); if(window.gapi?.client?.getToken()) saveToDrive(); }
+
+// ══════════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════════
+function toggleTheme(){
+  const light = document.body.classList.toggle('light');
+  document.getElementById('theme-btn').textContent = light ? '🌙' : '☀️';
+  DB.settings.theme = light ? 'light' : 'dark';
+  saveLocal();
+}
+function applyTheme(){
+  if(DB.settings?.theme === 'light'){ document.body.classList.add('light'); document.getElementById('theme-btn').textContent = '🌙'; }
+}
+
+// ══════════════════════════════════════════════
+// ROUTING
+// ══════════════════════════════════════════════
+function nav(page){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById('page-'+page);
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if(n.getAttribute('onclick')?.includes("'"+page+"'")) n.classList.add('active');
+  });
+  if(page==='dashboard') renderDash();
+  if(page==='library') renderLib();
+  if(page==='settings') renderSettings();
+  if(page==='add' && !editingId) resetForm();
+  if(page==='study'){ exitQuiz(); }
+  if(page==='interview'){ exitIV(); }
+  if(page==='feynman'){ exitFY(); }
+}
+
+// ══════════════════════════════════════════════
+// STREAK / SRS
+// ══════════════════════════════════════════════
+function checkStreak(){
+  const today = new Date().toDateString();
+  const s = DB.streak;
+  if(s.lastDate === today) return;
+  const yest = new Date(Date.now()-86400000).toDateString();
+  s.count = s.lastDate === yest ? s.count+1 : 1;
+  s.lastDate = today;
+  if(!s.history.includes(today)) s.history.push(today);
+  save();
+}
+function getDue(){ const now = Date.now(); return DB.concepts.filter(c => !c.nextReview || c.nextReview <= now); }
+function updateSRS(c, r){
+  const days = {1:1,2:3,3:7,4:14,5:30}[r]||1;
+  c.nextReview = Date.now() + days*86400000;
+  c.confidence = r; c.reviewCount = (c.reviewCount||0)+1; c.lastReviewed = Date.now();
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function renderDash(){
+  const h = new Date().getHours();
+  const greet = h<12?'Good morning':'h<17'?'Good afternoon':'Good evening';
+  document.getElementById('dash-greeting').textContent = (h<12?'Good morning! ☀️':h<17?'Good afternoon! 🌤':'Good evening! 🌙')+' Keep learning.';
+  document.getElementById('s-total').textContent = DB.concepts.length;
+  document.getElementById('s-streak').textContent = DB.streak.count||0;
+  document.getElementById('s-due').textContent = getDue().length;
+  document.getElementById('s-mastered').textContent = DB.concepts.filter(c=>c.confidence===5).length;
+  document.getElementById('sb-streak').textContent = DB.streak.count||0;
+  renderCal(); renderDots(); renderDueList(); renderAIStatus();
+}
+function renderCal(){
+  const el = document.getElementById('cal'); const today = new Date();
+  let h='';
+  for(let i=29;i>=0;i--){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const ds=d.toDateString(), done=DB.streak.history.includes(ds), isT=i===0;
+    const col = isT?(done?'var(--green)':'var(--accent)'):(done?'var(--accent)':'var(--bg4)');
+    h+=`<div title="${ds}" style="width:17px;height:17px;border-radius:3px;background:${col};cursor:default;" onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='1'"></div>`;
+  }
+  el.innerHTML=h;
+}
+function renderDots(){
+  const el=document.getElementById('sb-dots'); const today=new Date(); let h='';
+  for(let i=6;i>=0;i--){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const ds=d.toDateString(), done=DB.streak.history.includes(ds);
+    h+=`<div class="sd ${i===0?'today':(done?'done':'')}"></div>`;
+  }
+  el.innerHTML=h;
+}
+function renderDueList(){
+  const due=getDue().slice(0,5); const el=document.getElementById('due-list');
+  if(!due.length){el.innerHTML=`<div style="font-size:13px;color:var(--text3);padding:6px 0;">All caught up! 🎉 No concepts due today.</div>`;return;}
+  el.innerHTML=due.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openConcept('${c.id}')">
+    <div style="flex:1;"><div style="font-weight:500;font-size:14px;">${c.title}</div><div style="font-size:11px;color:var(--text2);">${strs(c.confidence||1)} · ${c.tags?.[0]||'No category'}</div></div>
+    <button class="btn btn-p btn-sm" onclick="event.stopPropagation();quickStudy('${c.id}')">Study</button>
+  </div>`).join('');
+}
+function renderAIStatus(){
+  const el=document.getElementById('ai-status-area'); el.innerHTML='';
+  fetch('http://localhost:11434/api/tags',{signal:AbortSignal.timeout(1500)})
+    .then(r=>{if(r.ok)el.innerHTML+=`<div class="ai-badge on"><div class="ai-dot"></div>Ollama: online</div>`;})
+    .catch(()=>{
+      if(DB.settings?.apiKey && DB.settings?.apiProvider)
+        el.innerHTML+=`<div class="ai-badge api"><div class="ai-dot"></div>${DB.settings.apiProvider}: configured</div>`;
+      else el.innerHTML+=`<div class="ai-badge off"><div class="ai-dot"></div>No AI connected</div>`;
+    });
+}
+
+// ══════════════════════════════════════════════
+// LIBRARY
+// ══════════════════════════════════════════════
+function renderLib(){
+  const q=(document.getElementById('q')?.value||'').toLowerCase();
+  const tf=document.getElementById('ftag')?.value||'';
+  const cf=document.getElementById('fconf')?.value||'';
+  const allTags=[...new Set(DB.concepts.flatMap(c=>c.tags||[]))];
+  const ts=document.getElementById('ftag');
+  if(ts){ const cur=ts.value; ts.innerHTML='<option value="">All categories</option>'+allTags.map(t=>`<option value="${t}"${t===cur?' selected':''}>${t}</option>`).join(''); }
+  let filtered=DB.concepts.filter(c=>{
+    const mq=!q||c.title.toLowerCase().includes(q)||(c.simple||'').toLowerCase().includes(q)||(c.tags||[]).some(t=>t.toLowerCase().includes(q));
+    const mt=!tf||(c.tags||[]).includes(tf);
+    const mc=!cf||String(c.confidence||1)===cf;
+    return mq&&mt&&mc;
+  });
+  const el=document.getElementById('lib-list');
+  if(!filtered.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">${DB.concepts.length?'No results':'No concepts yet'}</div><div class="empty-desc">${DB.concepts.length?'Try a different search.':'Add your first concept to get started.'}</div></div>`;
+    return;
+  }
+  el.innerHTML=filtered.map(c=>{
+    const due=!c.nextReview||c.nextReview<=Date.now();
+    return `<div class="concept-card" onclick="openConcept('${c.id}')">
+      <div class="cc-body">
+        <div class="cc-title">${esc(c.title)}</div>
+        <div class="cc-preview">${c.simple?c.simple.substring(0,100)+'…':'No description'}</div>
+        <div class="cc-meta">
+          <span class="conf-badge">${strs(c.confidence||1)}</span>
+          ${(c.tags||[]).map(t=>`<span class="ctag">${t}</span>`).join('')}
+          ${due?'<span class="due-badge">Due</span>':''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+        <button class="btn btn-g btn-sm" onclick="event.stopPropagation();editConcept('${c.id}')">Edit</button>
+        <button class="btn btn-d btn-sm" onclick="event.stopPropagation();delConcept('${c.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function strs(n){ return '★'.repeat(n||1)+'☆'.repeat(5-(n||1)); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+function openConcept(id){
+  const c=DB.concepts.find(x=>x.id===id); if(!c) return;
+  const secs=[
+    {k:'simple',l:'💡 Simple Meaning',cl:'req'},{k:'field',l:'🔧 In My Field',cl:'req'},
+    {k:'example',l:'📦 Real Example',cl:'req'},{k:'client',l:'🗣️ Say it to a Client',cl:'rec'},
+    {k:'misconception',l:'❌ Common Misconception',cl:'rec'},{k:'synonyms',l:'🔗 Synonyms / Related',cl:'rec'},
+    {k:'why',l:'⭐ Why It Matters',cl:'opt'},{k:'protip',l:'🏆 Pro Tip',cl:'opt'}
+  ];
+  document.getElementById('c-modal-body').innerHTML=`
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--accent);margin-bottom:4px;">${esc(c.title)}</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
+          <span style="font-size:13px;color:var(--accent);">${strs(c.confidence||1)}</span>
+          ${(c.tags||[]).map(t=>`<span class="ctag">${t}</span>`).join('')}
+          ${c.reviewCount?`<span style="font-size:11px;color:var(--text3);">Reviewed ${c.reviewCount}x</span>`:''}
+        </div>
+      </div>
+      <div style="display:flex;gap:7px;">
+        <button class="btn btn-g btn-sm" onclick="closeModal();editConcept('${c.id}')">Edit</button>
+        <button class="btn btn-p btn-sm" onclick="closeModal();quickStudy('${c.id}')">Study</button>
+      </div>
+    </div>
+    ${secs.filter(s=>c[s.k]).map(s=>`<div class="sec-block ${s.cl}"><div class="sec-lbl">${s.l}</div><div class="sec-cnt">${esc(c[s.k])}</div></div>`).join('')}
+  `;
+  document.getElementById('c-modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('c-modal').classList.remove('show'); }
+
+// ══════════════════════════════════════════════
+// ADD / EDIT
+// ══════════════════════════════════════════════
+function switchTab(mode){
+  ['paste','manual','ai'].forEach(m=>{
+    document.getElementById('tab-'+m)?.classList.toggle('active',m===mode);
+    const el=document.getElementById('add-'+m); if(el) el.style.display=m===mode?'block':'none';
+  });
+  if(mode==='manual'||mode==='ai') document.getElementById('concept-form').style.display='block';
+}
+
+function parsePaste(){
+  const text=document.getElementById('paste-in').value.trim();
+  if(!text){toast('Paste some text first!','err');return;}
+  const p=parseText(text);
+  fillForm(p);
+  document.getElementById('parse-ok').style.display='block';
+  document.getElementById('concept-form').style.display='block';
+  toast('Sections detected! Review below.','ok');
+}
+function clearPaste(){
+  document.getElementById('paste-in').value='';
+  document.getElementById('parse-ok').style.display='none';
+  document.getElementById('concept-form').style.display='none';
+}
+
+function parseText(text){
+  const r={};
+  const lines=text.split('\n');
+  // Title from first heading
+  const tm=text.match(/^#+\s*(.+)|^(.+)\n[=-]{3,}/m);
+  if(tm) r.title=(tm[1]||tm[2]).replace(/[#*`]/g,'').trim();
+  if(!r.title){ const f=lines.find(l=>l.trim()&&!l.match(/^[#\d\-\*]/)); if(f) r.title=f.replace(/[#*`]/g,'').trim().substring(0,60); }
+  const patterns=[
+    {k:'simple',kw:['simple meaning','simple definition','definition','1️⃣','simple','what it means','what is']},
+    {k:'field',kw:['in programming','in ai','in my field','in software','technical','2️⃣']},
+    {k:'example',kw:['real example','example','real-world','3️⃣','code example']},
+    {k:'client',kw:['client','say it to','talking to','4️⃣','professional','how you can say']},
+    {k:'misconception',kw:['misconception','common mistake','wrong','beginner tip','5️⃣']},
+    {k:'synonyms',kw:['synonym','related','similar','also known']},
+    {k:'why',kw:['why it matters','why','importance','career']},
+    {k:'protip',kw:['pro tip','tip','advanced','💡','important for']},
+  ];
+  const sre=/(?:^|\n)(?:#{1,3}\s*|[1-9️⃣]+\s*\.?\s*|\d+\.\s+)(.+)/g;
+  let secs=[]; let m;
+  while((m=sre.exec(text))!==null) secs.push({header:m[1],start:m.index});
+  secs.forEach((s,i)=>{
+    s.end=i+1<secs.length?secs[i+1].start:text.length;
+    const content=text.substring(s.start+s.header.length+1,s.end).trim();
+    const hl=s.header.toLowerCase();
+    for(const p of patterns){
+      if(!r[p.k]&&p.kw.some(kw=>hl.includes(kw))){r[p.k]=content.replace(/^#+\s*/mg,'').trim();break;}
+    }
+  });
+  if(!r.simple&&text.length<500) r.simple=text;
+  return r;
+}
+
+function fillForm(p){
+  ['title','simple','field','example','client','misconception','synonyms','why','protip'].forEach(k=>{
+    const el=document.getElementById('f-'+k); if(el) el.value=p[k]||'';
+  });
+}
+
+function setStars(n){
+  currentStars=n;
+  const lbls=['','Just learning','Getting it','Know it','Confident','Mastered!'];
+  document.querySelectorAll('.star-btn').forEach((b,i)=>b.classList.toggle('active',i<n));
+  document.getElementById('conf-lbl').textContent=lbls[n]||'';
+}
+
+function handleTag(e){
+  if(e.key==='Enter'||e.key===','){
+    e.preventDefault();
+    const v=e.target.value.trim().replace(/,$/,'');
+    if(v&&!tagList.includes(v)){tagList.push(v);renderTagChips();}
+    e.target.value='';
+  } else if(e.key==='Backspace'&&!e.target.value&&tagList.length){
+    tagList.pop();renderTagChips();
+  }
+}
+function renderTagChips(){
+  const wrap=document.getElementById('tags-wrap');
+  const inp=document.getElementById('tags-in');
+  wrap.innerHTML=tagList.map((t,i)=>`<span class="tag-chip">${t}<span class="rm" onclick="removeTag(${i})">×</span></span>`).join('');
+  wrap.appendChild(inp);
+}
+function removeTag(i){tagList.splice(i,1);renderTagChips();}
+
+function saveConcept(){
+  const title=document.getElementById('f-title').value.trim();
+  const simple=document.getElementById('f-simple').value.trim();
+  const field=document.getElementById('f-field').value.trim();
+  const example=document.getElementById('f-example').value.trim();
+  if(!title){toast('Please enter a word/term.','err');return;}
+  if(!simple){toast('Please fill in Simple Meaning.','err');return;}
+  if(!field){toast('Please fill in My Field.','err');return;}
+  if(!example){toast('Please add a Real Example.','err');return;}
+  if(!currentStars){toast('Please rate your confidence (1–5).','err');return;}
+  const existing = editingId ? DB.concepts.find(c=>c.id===editingId) : null;
+  const c={
+    id:editingId||Date.now().toString(),
+    title,simple,field,example,
+    client:document.getElementById('f-client').value.trim(),
+    misconception:document.getElementById('f-misconception').value.trim(),
+    synonyms:document.getElementById('f-synonyms').value.trim(),
+    why:document.getElementById('f-why').value.trim(),
+    protip:document.getElementById('f-protip').value.trim(),
+    tags:[...tagList],
+    confidence:currentStars,
+    createdAt:existing?.createdAt||Date.now(),
+    updatedAt:Date.now(),
+    nextReview:existing?.nextReview||Date.now(),
+    reviewCount:existing?.reviewCount||0,
+  };
+  if(editingId){
+    const idx=DB.concepts.findIndex(x=>x.id===editingId);
+    if(idx>=0) DB.concepts[idx]=c;
+    toast('Concept updated! ✓','ok');
+  } else {
+    DB.concepts.push(c);
+    checkStreak();
+    toast('Concept saved! 🎉','ok');
+    showRelated(title);
+  }
+  save();
+  editingId=null; currentStars=0; tagList=[];
+  document.querySelectorAll('.star-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('conf-lbl').textContent='Click to rate';
+  renderTagChips();
+  document.getElementById('concept-form').style.display='none';
+  document.getElementById('parse-ok').style.display='none';
+  document.getElementById('ai-ok').style.display='none';
+  ['paste-in'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['f-title','f-simple','f-field','f-example','f-client','f-misconception','f-synonyms','f-why','f-protip'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('save-btn').textContent='💾 Save Concept';
+  document.getElementById('add-title').textContent='Add Concept';
+}
+
+function resetForm(){
+  editingId=null; currentStars=0; tagList=[];
+  document.querySelectorAll('.star-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('conf-lbl').textContent='Click to rate';
+  renderTagChips();
+  ['f-title','f-simple','f-field','f-example','f-client','f-misconception','f-synonyms','f-why','f-protip'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('concept-form').style.display='none';
+  document.getElementById('parse-ok').style.display='none';
+  document.getElementById('ai-ok').style.display='none';
+  document.getElementById('related-box').style.display='none';
+  document.getElementById('save-btn').textContent='💾 Save Concept';
+  document.getElementById('add-title').textContent='Add Concept';
+  switchTab('paste');
+}
+
+function editConcept(id){
+  const c=DB.concepts.find(x=>x.id===id); if(!c) return;
+  editingId=id; nav('add'); switchTab('manual');
+  fillForm(c);
+  tagList=[...(c.tags||[])]; renderTagChips();
+  setStars(c.confidence||1);
+  document.getElementById('concept-form').style.display='block';
+  document.getElementById('save-btn').textContent='✏️ Update Concept';
+  document.getElementById('add-title').textContent='Edit Concept';
+  document.getElementById('related-box').style.display='none';
+}
+
+function delConcept(id){
+  if(!confirm('Delete this concept?')) return;
+  DB.concepts=DB.concepts.filter(c=>c.id!==id);
+  save(); renderLib(); toast('Deleted.','ok');
+}
+
+// ══════════════════════════════════════════════
+// RELATED CONCEPTS
+// ══════════════════════════════════════════════
+const relMap={
+  scaffold:['Boilerplate','CLI tool','Framework','Code generator','Template'],
+  mvp:['Agile','Sprint','Prototype','User story','Iteration','Backlog'],
+  api:['REST','GraphQL','Endpoint','HTTP methods','JSON','Authentication','Webhook'],
+  docker:['Container','Kubernetes','DevOps','Microservices','Docker Compose'],
+  agile:['Scrum','Kanban','Sprint','MVP','Retrospective','Velocity'],
+  database:['SQL','NoSQL','Schema','Index','ORM','Query optimization'],
+  machine:['Neural network','Training data','Overfitting','Feature engineering','Model evaluation'],
+  neural:['Backpropagation','Gradient descent','Activation function','Epoch','Batch size'],
+  git:['Branch','Merge','Pull request','Commit','Rebase','CI/CD'],
+  react:['Component','State','Props','Hook','Virtual DOM','JSX'],
+  default:['API','Documentation','Debugging','Version control','Testing','Refactoring']
+};
+function showRelated(title){
+  const k=title.toLowerCase();
+  let sug=relMap.default;
+  for(const [key,vals] of Object.entries(relMap)){ if(k.includes(key)){sug=vals;break;} }
+  const exist=DB.concepts.map(c=>c.title.toLowerCase());
+  const filtered=sug.filter(s=>!exist.includes(s.toLowerCase())).slice(0,5);
+  if(!filtered.length) return;
+  document.getElementById('related-box').style.display='block';
+  document.getElementById('related-chips').innerHTML=filtered.map(s=>
+    `<div class="rel-chip" onclick="prefillRelated('${s}')"><span style="font-size:14px;font-weight:500;">+</span>${s}</div>`
+  ).join('');
+}
+function prefillRelated(word){
+  resetForm(); switchTab('ai');
+  document.getElementById('ai-word').value=word;
+  document.getElementById('concept-form').style.display='block';
+  toast(`Ready to generate "${word}" — click Generate or fill manually.`,'ok');
+}
+
+// ══════════════════════════════════════════════
+// AI GENERATE
+// ══════════════════════════════════════════════
+async function doAIGen(){
+  const word=document.getElementById('ai-word').value.trim();
+  if(!word){toast('Enter a word first.','err');return;}
+  const statusEl=document.getElementById('ai-status');
+  const btn=document.getElementById('ai-gen-btn');
+  statusEl.style.display='flex'; statusEl.style.alignItems='center'; statusEl.style.gap='6px';
+  statusEl.innerHTML='<span class="spinner"></span> Generating...';
+  btn.disabled=true;
+  let result=null;
+  // Try Ollama
+  try{
+    const r=await fetch('http://localhost:11434/api/tags',{signal:AbortSignal.timeout(1500)});
+    if(r.ok){
+      const tags=await r.json();
+      const model=tags.models?.[0]?.name||'llama3';
+      result=await genOllama(word,model);
+    }
+  }catch(e){}
+  // Try API key
+  if(!result && DB.settings?.apiKey && DB.settings?.apiProvider){
+    result=await genAPI(word);
+  }
+  if(!result){
+    statusEl.innerHTML='⚠️ No AI found. Template filled — edit manually.';
+    result={title:word,simple:`[Edit] What does ${word} mean?`,field:`[Edit] How is ${word} used in your field?`,example:`[Edit] Give a real example of ${word}.`,client:`[Edit] How would you explain ${word} to a client?`};
+  } else {
+    statusEl.innerHTML='<span style="color:var(--green)">✓ Generated!</span>';
+  }
+  fillForm(result);
+  document.getElementById('ai-ok').style.display='block';
+  document.getElementById('concept-form').style.display='block';
+  btn.disabled=false;
+}
+
+function buildPrompt(word){
+  return `Generate a concept card for a software developer learning: "${word}"
+Respond ONLY with valid JSON, no markdown, no backticks. Use exactly this structure:
+{"title":"${word}","simple":"2-3 sentence plain English explanation no jargon","field":"3-4 sentences how this is used in programming/AI/software","example":"concrete real-world example with code or scenario","client":"1-2 sentences how to explain to a non-technical client professionally","misconception":"most common beginner mistake about this","synonyms":"related terms comma separated","why":"one sentence why this matters to a developer career","protip":"one advanced expert tip"}`;
+}
+async function genOllama(word,model){
+  try{
+    const r=await fetch('http://localhost:11434/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,prompt:buildPrompt(word),stream:false}),signal:AbortSignal.timeout(40000)});
+    const d=await r.json(); return parseAI(d.response||'');
+  }catch(e){return null;}
+}
+async function genAPI(word){
+  const {apiKey:k, apiProvider:prov}=DB.settings;
+  const prompt=buildPrompt(word);
+  try{
+    let url,headers,body,text='';
+    if(prov==='openai'){
+      url='https://api.openai.com/v1/chat/completions';
+      headers={'Content-Type':'application/json','Authorization':'Bearer '+k};
+      body=JSON.stringify({model:'gpt-3.5-turbo',messages:[{role:'user',content:prompt}],max_tokens:900});
+      const d=await(await fetch(url,{method:'POST',headers,body,signal:AbortSignal.timeout(25000)})).json();
+      text=d.choices?.[0]?.message?.content||'';
+    } else if(prov==='claude'){
+      url='https://api.anthropic.com/v1/messages';
+      headers={'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01'};
+      body=JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:900,messages:[{role:'user',content:prompt}]});
+      const d=await(await fetch(url,{method:'POST',headers,body,signal:AbortSignal.timeout(25000)})).json();
+      text=d.content?.[0]?.text||'';
+    } else if(prov==='gemini'){
+      url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${k}`;
+      headers={'Content-Type':'application/json'};
+      body=JSON.stringify({contents:[{parts:[{text:prompt}]}]});
+      const d=await(await fetch(url,{method:'POST',headers,body,signal:AbortSignal.timeout(25000)})).json();
+      text=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    } else if(prov==='groq'){
+      url='https://api.groq.com/openai/v1/chat/completions';
+      headers={'Content-Type':'application/json','Authorization':'Bearer '+k};
+      body=JSON.stringify({model:'llama3-8b-8192',messages:[{role:'user',content:prompt}],max_tokens:900});
+      const d=await(await fetch(url,{method:'POST',headers,body,signal:AbortSignal.timeout(25000)})).json();
+      text=d.choices?.[0]?.message?.content||'';
+    }
+    return parseAI(text);
+  }catch(e){return null;}
+}
+function parseAI(text){
+  try{ const m=text.match(/\{[\s\S]*\}/); if(m) return JSON.parse(m[0]); }catch(e){}
+  return null;
+}
+
+// ══════════════════════════════════════════════
+// TIMER
+// ══════════════════════════════════════════════
+function startTimer(mins,btn){
+  document.querySelectorAll('.tpreset').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  clearInterval(timerInterval);
+  timerSecs=mins*60;
+  updateTimerDisp();
+  timerInterval=setInterval(()=>{
+    timerSecs--;
+    updateTimerDisp();
+    if(timerSecs<=0){clearInterval(timerInterval);toast('⏱ Session complete! Great work!','ok');btn.classList.remove('active');document.getElementById('timer-disp').textContent='Done!';}
+  },1000);
+}
+function stopTimer(){
+  clearInterval(timerInterval);timerInterval=null;
+  document.getElementById('timer-disp').textContent='--:--';
+  document.getElementById('timer-disp').classList.remove('warn');
+  document.querySelectorAll('.tpreset').forEach(b=>b.classList.remove('active'));
+}
+function updateTimerDisp(){
+  const m=Math.floor(timerSecs/60),s=timerSecs%60;
+  const el=document.getElementById('timer-disp'); if(!el)return;
+  el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('warn',timerSecs<=60&&timerSecs>0);
+}
+
+// ══════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ══════════════════════════════════════════════
+function toggleSC(){ document.getElementById('sc-panel').classList.toggle('show'); }
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  const k=e.key.toLowerCase();
+  if(k==='?'){toggleSC();return;}
+  if(k==='a'){nav('add');return;}
+  if(k==='l'){nav('library');return;}
+  if(k==='s'){nav('study');return;}
+  if(k==='d'){nav('dashboard');return;}
+  if(document.getElementById('fc')){
+    if(k===' '){e.preventDefault();flipFC();return;}
+    if(k==='n'&&quizState.pool){quizState.idx++;renderQuizStep();return;}
+    if(['1','2','3','4','5'].includes(k)){
+      const c=quizState.pool?.[quizState.idx-1];
+      if(c&&document.getElementById('fc-rates')?.style.display!=='none') rateFC(parseInt(k),c.id);
+    }
+  }
+});
+document.addEventListener('click',e=>{if(!e.target.closest('#sc-panel')&&!e.target.closest('.sc-fab'))document.getElementById('sc-panel').classList.remove('show');});
+
+// ══════════════════════════════════════════════
+// STUDY / QUIZ ENGINE
+// ══════════════════════════════════════════════
+function getPool(){
+  const f=document.getElementById('study-filter')?.value||'due';
+  if(f==='due') return getDue();
+  if(f==='weak') return DB.concepts.filter(c=>(c.confidence||1)<=2);
+  return [...DB.concepts];
+}
+function startMode(mode){
+  const pool=getPool().sort(()=>Math.random()-.5);
+  if(!pool.length){toast('No concepts to study! Add some first.','err');return;}
+  quizState={mode,pool,idx:0,score:0,total:pool.length};
+  document.getElementById('study-home').style.display='none';
+  document.getElementById('quiz-area').style.display='block';
+  const lbls={flashcard:'🃏 Flashcards',mcq:'🎯 Multiple Choice',fillin:'✏️ Fill in the Blank',client:'💬 Client Explanation'};
+  document.getElementById('quiz-mode-lbl').textContent=lbls[mode]||mode;
+  checkStreak(); renderQuizStep();
+}
+function quickStudy(id){
+  const c=DB.concepts.find(x=>x.id===id); if(!c)return;
+  nav('study');
+  quizState={mode:'flashcard',pool:[c],idx:0,score:0,total:1};
+  document.getElementById('study-home').style.display='none';
+  document.getElementById('quiz-area').style.display='block';
+  document.getElementById('quiz-mode-lbl').textContent='🃏 Flashcard';
+  renderQuizStep();
+}
+function exitQuiz(){
+  document.getElementById('study-home').style.display='block';
+  document.getElementById('quiz-area').style.display='none';
+  document.getElementById('quiz-content').innerHTML='';
+}
+function renderQuizStep(){
+  const {mode,pool,idx,total}=quizState;
+  if(idx>=pool.length){showResults();return;}
+  const c=pool[idx];
+  const pct=Math.round((idx/total)*100);
+  const prog=`<div class="qprog"><span>${idx+1}/${total}</span><div class="pbar"><div class="pfill" style="width:${pct}%"></div></div><span>${quizState.score} ✓</span></div>`;
+  if(mode==='flashcard') renderFC(c,prog);
+  else if(mode==='mcq') renderMCQ(c,prog);
+  else if(mode==='fillin') renderFill(c,prog);
+  else if(mode==='client') renderClient(c,prog);
+}
+function renderFC(c,prog){
+  document.getElementById('quiz-content').innerHTML=`
+    ${prog}
+    <div class="fc-wrap">
+      <div class="fc" id="fc" onclick="flipFC()">
+        <div class="fc-face"><div class="fc-lbl">What does this mean?</div><div class="fc-word">${esc(c.title)}</div><div class="fc-hint">Click to reveal · <kbd>Space</kbd></div></div>
+        <div class="fc-face fc-back"><div class="fc-lbl">Simple meaning</div><div class="fc-answer">${esc(c.simple)}</div></div>
+      </div>
+    </div>
+    <div id="fc-rates" style="display:none;text-align:center;margin-top:14px;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">How well did you know this?</div>
+      <div class="rate-row">
+        <button class="rate-btn" onclick="rateFC(1,'${c.id}')">Again</button>
+        <button class="rate-btn" onclick="rateFC(2,'${c.id}')">Hard</button>
+        <button class="rate-btn" onclick="rateFC(3,'${c.id}')">Good</button>
+        <button class="rate-btn" onclick="rateFC(4,'${c.id}')">Easy</button>
+        <button class="rate-btn" onclick="rateFC(5,'${c.id}')">Mastered</button>
+      </div>
+      <div class="kbd-hint"><kbd>1</kbd>–<kbd>5</kbd> to rate · <kbd>N</kbd> next</div>
+    </div>
+    <div class="fc-controls" style="margin-top:12px;">
+      <button class="btn btn-g btn-sm" onclick="openConcept('${c.id}')">View full card</button>
+    </div>`;
+}
+function flipFC(){
+  const fc=document.getElementById('fc'); if(!fc)return;
+  fc.classList.toggle('flipped');
+  if(fc.classList.contains('flipped')) document.getElementById('fc-rates').style.display='block';
+}
+function rateFC(r,id){
+  const c=DB.concepts.find(x=>x.id===id); if(c){updateSRS(c,r);save();}
+  if(r>=3) quizState.score++;
+  quizState.idx++; renderQuizStep();
+}
+function renderMCQ(c,prog){
+  const others=DB.concepts.filter(x=>x.id!==c.id).sort(()=>Math.random()-.5).slice(0,3);
+  const opts=[...others,c].sort(()=>Math.random()-.5);
+  document.getElementById('quiz-content').innerHTML=`
+    ${prog}<div class="quiz-card">
+    <div class="quiz-q">What does <span style="color:var(--accent)">"${esc(c.title)}"</span> mean?</div>
+    <div class="quiz-opts">${opts.map(o=>`<button class="quiz-opt" onclick="chkMCQ(this,'${c.id}','${o.id}')">${esc((o.simple||o.title).substring(0,100))}</button>`).join('')}</div>
+    <div class="qfb" id="qfb"></div>
+    <button class="btn btn-g" id="next-btn" style="display:none;" onclick="quizState.idx++;renderQuizStep()">Next →</button>
+    </div>`;
+}
+function chkMCQ(btn,cid,oid){
+  document.querySelectorAll('.quiz-opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('qfb');
+  const correct=DB.concepts.find(c=>c.id===cid);
+  if(oid===cid){btn.classList.add('correct');fb.textContent='✓ Correct!';fb.className='qfb show correct';quizState.score++;if(correct){updateSRS(correct,4);save();}}
+  else{btn.classList.add('wrong');document.querySelectorAll('.quiz-opt').forEach(b=>{if(b.getAttribute('onclick')?.includes(`'${cid}','${cid}'`))b.classList.add('correct');});fb.textContent=`✗ Answer: ${correct?.simple?.substring(0,80)}…`;fb.className='qfb show wrong';if(correct){updateSRS(correct,2);save();}}
+  document.getElementById('next-btn').style.display='inline-flex';
+}
+function renderFill(c,prog){
+  const base=c.client||c.simple||'';
+  const w=c.title.split(/[\s\/]+/)[0];
+  let sent=base.length>20?base.substring(0,120):`In software development, ______ refers to ${(c.simple||'a key concept').substring(0,60)}.`;
+  const withBlank=sent.replace(new RegExp(`\\b${w}\\b`,'i'),'______');
+  document.getElementById('quiz-content').innerHTML=`
+    ${prog}<div class="quiz-card">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Fill in the blank:</div>
+    <div class="sentence-blk">${esc(withBlank).replace('______','<input class="blank-input" id="blank-ans" placeholder="?" autocomplete="off">')}</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="btn btn-p" onclick="chkFill('${c.id}','${w.replace(/'/g,"\\'")}')">Check</button>
+      <button class="btn btn-g" onclick="showFillAns('${c.id}')">Show answer</button>
+    </div>
+    <div class="qfb" id="qfb"></div>
+    <button class="btn btn-g" id="next-btn" style="display:none;margin-top:8px;" onclick="quizState.idx++;renderQuizStep()">Next →</button>
+    </div>`;
+  setTimeout(()=>document.getElementById('blank-ans')?.focus(),80);
+}
+function chkFill(id,ans){
+  const inp=document.getElementById('blank-ans');
+  const val=(inp?.value||'').trim().toLowerCase();
+  const c=DB.concepts.find(x=>x.id===id);
+  const words=(c?.title||'').split(/[\s\/]+/).map(w=>w.toLowerCase());
+  const ok=words.some(w=>val&&(val.includes(w)||w.includes(val)));
+  const fb=document.getElementById('qfb');
+  if(ok){if(inp){inp.style.borderColor='var(--green)';inp.style.color='var(--green)';}fb.textContent='✓ Correct!';fb.className='qfb show correct';quizState.score++;if(c){updateSRS(c,4);save();}}
+  else{if(inp){inp.style.borderColor='var(--red)';inp.style.color='var(--red)';}fb.textContent=`✗ Answer: ${ans}`;fb.className='qfb show wrong';if(c){updateSRS(c,2);save();}}
+  document.getElementById('next-btn').style.display='inline-flex';
+}
+function showFillAns(id){
+  const c=DB.concepts.find(x=>x.id===id);
+  const fb=document.getElementById('qfb');
+  fb.textContent='Answer: '+(c?.title||'?');fb.className='qfb show wrong';
+  if(c){updateSRS(c,1);save();}
+  document.getElementById('next-btn').style.display='inline-flex';
+}
+function renderClient(c,prog){
+  document.getElementById('quiz-content').innerHTML=`
+    ${prog}<div class="quiz-card">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">Client explanation challenge:</div>
+    <div class="quiz-q">How would you explain <span style="color:var(--accent)">"${esc(c.title)}"</span> to a non-technical client?</div>
+    <textarea id="cl-ans" placeholder="Write your explanation..." style="width:100%;min-height:90px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;resize:vertical;margin-bottom:14px;" oninput="this.style.borderColor='var(--accent)'"></textarea>
+    <button class="btn btn-g" onclick="revealClient('${c.id}')">Reveal model answer</button>
+    <div id="cl-reveal" style="display:none;margin-top:14px;">
+      <div class="sec-block rec"><div class="sec-lbl">Model answer</div><div class="sec-cnt" id="cl-ans-text"></div></div>
+      <div style="margin-top:10px;font-size:12px;color:var(--text2);">How well did you do?</div>
+      <div class="rate-row" style="justify-content:flex-start;margin-top:7px;">
+        <button class="rate-btn" onclick="rateFC(1,'${c.id}')">Missed it</button>
+        <button class="rate-btn" onclick="rateFC(3,'${c.id}')">Close</button>
+        <button class="rate-btn" onclick="rateFC(5,'${c.id}')">Nailed it!</button>
+      </div>
+    </div>
+    </div>`;
+}
+function revealClient(id){
+  const c=DB.concepts.find(x=>x.id===id);
+  document.getElementById('cl-ans-text').textContent=c?.client||c?.simple||'No saved explanation yet.';
+  document.getElementById('cl-reveal').style.display='block';
+}
+function showResults(){
+  const {score,total,mode}=quizState;
+  const pct=Math.round((score/total)*100);
+  document.getElementById('quiz-content').innerHTML=`
+    <div class="quiz-card" style="text-align:center;padding:40px;">
+      <div style="font-size:38px;margin-bottom:10px;">${pct>=80?'🏆':pct>=60?'👍':'💪'}</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:6px;">${score} / ${total}</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:22px;">${pct}% — ${pct>=80?'Excellent!':pct>=60?'Good job!':'Keep going!'}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-p" onclick="startMode('${mode}')">Again</button>
+        <button class="btn btn-g" onclick="exitQuiz()">Exit</button>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
+// INTERVIEW MODE
+// ══════════════════════════════════════════════
+function setIVcount(n,btn){
+  ivCount=n;
+  document.querySelectorAll('#iv-home .mode-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function startInterview(){
+  if(DB.concepts.length<2){toast('Add at least 2 concepts first!','err');return;}
+  const pool=[...DB.concepts].sort(()=>Math.random()-.5).slice(0,ivCount);
+  const qs=pool.map(c=>{
+    const types=['definition'];
+    if(c.client) types.push('client');
+    if(c.example) types.push('usecase');
+    return{concept:c,type:types[Math.floor(Math.random()*types.length)]};
+  });
+  ivState={qs,idx:0,score:0};
+  document.getElementById('iv-home').style.display='none';
+  document.getElementById('iv-area').style.display='block';
+  checkStreak(); renderIV();
+}
+function exitIV(){
+  document.getElementById('iv-home').style.display='block';
+  document.getElementById('iv-area').style.display='none';
+}
+function renderIV(){
+  const {qs,idx}=ivState;
+  if(idx>=qs.length){showIVResults();return;}
+  const{concept:c,type}=qs[idx];
+  const pct=Math.round((idx/qs.length)*100);
+  document.getElementById('iv-pfill').style.width=pct+'%';
+  document.getElementById('iv-plbl').textContent=`${idx+1}/${qs.length}`;
+  const typeLabel={definition:'Definition',client:'Client explanation',usecase:'Use case'};
+  const qtext={definition:`What does <span style="color:var(--accent)">"${esc(c.title)}"</span> mean?`,client:`How would you explain <span style="color:var(--accent)">"${esc(c.title)}"</span> to a non-technical client?`,usecase:`Give a real-world example of when you'd use <span style="color:var(--accent)">"${esc(c.title)}"</span>.`};
+  const ans={definition:c.simple,client:c.client||c.simple,usecase:c.example};
+  document.getElementById('iv-content').innerHTML=`
+    <div class="interview-card">
+      <span class="type-badge ${type==='definition'?'def':type==='client'?'cli':'use'}">${typeLabel[type]}</span>
+      <div class="quiz-q">${qtext[type]}</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">Think about your answer, then reveal:</div>
+      <button class="btn btn-g" onclick="revealIV('${c.id}','${type}')" id="iv-reveal-btn">👁 Reveal answer</button>
+      <div id="iv-ans" style="display:none;margin-top:14px;">
+        <div class="sec-block rec"><div class="sec-lbl">Model answer</div><div class="sec-cnt">${esc(ans[type]||'No answer saved.')}</div></div>
+        <div style="margin-top:12px;font-size:12px;color:var(--text2);">How did you do?</div>
+        <div class="rate-row" style="justify-content:flex-start;margin-top:7px;">
+          <button class="rate-btn" onclick="rateIV(1,'${c.id}')">Missed</button>
+          <button class="rate-btn" onclick="rateIV(3,'${c.id}')">Partial</button>
+          <button class="rate-btn" onclick="rateIV(5,'${c.id}')">Got it!</button>
+        </div>
+      </div>
+    </div>`;
+}
+function revealIV(){ document.getElementById('iv-ans').style.display='block'; document.getElementById('iv-reveal-btn').style.display='none'; }
+function rateIV(r,id){
+  const c=DB.concepts.find(x=>x.id===id); if(c){updateSRS(c,r);save();}
+  if(r>=3) ivState.score++;
+  ivState.idx++; renderIV();
+}
+function showIVResults(){
+  const{score,qs}=ivState;
+  const pct=Math.round((score/qs.length)*100);
+  document.getElementById('iv-content').innerHTML=`
+    <div class="quiz-card" style="text-align:center;padding:40px;">
+      <div style="font-size:38px;margin-bottom:10px;">${pct>=80?'🏆':pct>=60?'👍':'💪'}</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:6px;">${score} / ${qs.length}</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:22px;">${pct}% — ${pct>=80?'Interview ready!':pct>=60?'Getting there!':'Keep practicing!'}</div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button class="btn btn-p" onclick="startInterview()">Again</button>
+        <button class="btn btn-g" onclick="exitIV()">Exit</button>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
+// FEYNMAN
+// ══════════════════════════════════════════════
+function startFeynman(){
+  const f=document.getElementById('fy-filter').value;
+  let pool=[...DB.concepts];
+  if(f==='weak') pool=pool.filter(c=>(c.confidence||1)<=2);
+  else if(f==='due') pool=getDue();
+  pool=pool.sort(()=>Math.random()-.5);
+  if(!pool.length){toast('No concepts match. Try a different filter.','err');return;}
+  fyState={pool,idx:0,score:0};
+  document.getElementById('fy-home').style.display='none';
+  document.getElementById('fy-area').style.display='block';
+  checkStreak(); renderFY();
+}
+function exitFY(){
+  document.getElementById('fy-home').style.display='block';
+  document.getElementById('fy-area').style.display='none';
+}
+function renderFY(){
+  const{pool,idx}=fyState;
+  if(idx>=pool.length){showFYResults();return;}
+  const c=pool[idx];
+  document.getElementById('fy-prog').textContent=`${idx+1} of ${pool.length}`;
+  document.getElementById('fy-content').innerHTML=`
+    <div class="feynman-card">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:5px;">Explain this concept from memory — no notes!</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--accent);margin-bottom:18px;">${esc(c.title)}</div>
+      <div class="fg"><label class="fl">Your explanation</label>
+        <textarea id="fy-input" style="min-height:110px;width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;resize:vertical;" placeholder="Explain it like you're talking to a smart friend who doesn't know programming..."></textarea>
+      </div>
+      <button class="btn btn-p" onclick="revealFY('${c.id}')">Compare with my saved answer</button>
+      <div id="fy-reveal" style="display:none;margin-top:18px;">
+        <div class="feynman-compare">
+          <div><div class="fy-col-lbl">Your explanation</div><div class="fy-text" id="fy-yours"></div></div>
+          <div><div class="fy-col-lbl">Your saved answer</div><div class="fy-text">${esc(c.simple)}</div></div>
+        </div>
+        ${c.client?`<div style="margin-top:12px;"><div class="fy-col-lbl">Your saved client explanation</div><div class="fy-text">${esc(c.client)}</div></div>`:''}
+        <div style="margin-top:14px;font-size:12px;color:var(--text2);">How complete was your explanation?</div>
+        <div class="rate-row" style="justify-content:flex-start;margin-top:7px;">
+          <button class="rate-btn" onclick="rateFY(1,'${c.id}')">Missed a lot</button>
+          <button class="rate-btn" onclick="rateFY(3,'${c.id}')">Mostly right</button>
+          <button class="rate-btn" onclick="rateFY(5,'${c.id}')">Nailed it!</button>
+        </div>
+      </div>
+    </div>`;
+}
+function revealFY(id){
+  document.getElementById('fy-yours').textContent=document.getElementById('fy-input').value.trim()||'(nothing written)';
+  document.getElementById('fy-reveal').style.display='block';
+}
+function rateFY(r,id){
+  const c=DB.concepts.find(x=>x.id===id); if(c){updateSRS(c,r);save();}
+  if(r>=3) fyState.score++;
+  fyState.idx++; renderFY();
+}
+function showFYResults(){
+  const{score,pool}=fyState;
+  document.getElementById('fy-content').innerHTML=`
+    <div class="quiz-card" style="text-align:center;padding:40px;">
+      <div style="font-size:38px;margin-bottom:10px;">🧠</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:6px;">Session complete!</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:22px;">You explained ${score} of ${pool.length} concepts well.</div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button class="btn btn-p" onclick="startFeynman()">Again</button>
+        <button class="btn btn-g" onclick="exitFY()">Exit</button>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════
+function renderSettings(){
+  document.getElementById('gclient').value=DB.settings?.clientId||'';
+  document.getElementById('api-key').value=DB.settings?.apiKey||'';
+  if(DB.settings?.apiProvider) document.getElementById('api-prov').value=DB.settings.apiProvider;
+  const sd=document.getElementById('drive-status');
+  if(!DB.settings?.clientId) sd.innerHTML=`<div class="ds no">☁️ Not connected — enter your Client ID below</div>`;
+  else if(window.gapi?.client?.getToken()) sd.innerHTML=`<div class="ds ok">✓ Google Drive connected</div>`;
+  else sd.innerHTML=`<div class="ds wait">Client ID saved — click Connect to sign in</div>`;
+}
+function saveDriveCfg(){ DB.settings.clientId=document.getElementById('gclient').value.trim(); saveLocal(); }
+function saveAICfg(){ DB.settings.apiProvider=document.getElementById('api-prov').value; DB.settings.apiKey=document.getElementById('api-key').value.trim(); saveLocal(); toast('AI settings saved.','ok'); }
+function connectDrive(){
+  const id=DB.settings.clientId; if(!id){toast('Enter your Client ID first.','err');return;}
+  if(!window.google?.accounts?.oauth2){ loadGSI(id); return; }
+  authDrive(id);
+}
+function loadGSI(id){
+  const s=document.createElement('script'); s.src='https://accounts.google.com/gsi/client';
+  s.onload=()=>{ const s2=document.createElement('script'); s2.src='https://apis.google.com/js/api.js';
+    s2.onload=()=>gapi.load('client',()=>gapi.client.init({discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']}).then(()=>authDrive(id)));
+    document.head.appendChild(s2); };
+  document.head.appendChild(s);
+}
+function authDrive(id){
+  const client=google.accounts.oauth2.initTokenClient({client_id:id,scope:'https://www.googleapis.com/auth/drive.appdata',callback:(r)=>{if(r.error){toast('Sign-in failed: '+r.error,'err');return;}toast('Google Drive connected!','ok');renderSettings();syncDrive();}});
+  client.requestAccessToken();
+}
+async function saveToDrive(){
+  try{
+    const content=JSON.stringify(DB,null,2),fid=DB.settings.driveFileId;
+    const meta=fid?{}:{name:'knowledgevault_data.json',parents:['appDataFolder']};
+    const body=new FormData();
+    body.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
+    body.append('file',new Blob([content],{type:'application/json'}));
+    const url=fid?`https://www.googleapis.com/upload/drive/v3/files/${fid}?uploadType=multipart`:'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    const r=await fetch(url,{method:fid?'PATCH':'POST',headers:{Authorization:'Bearer '+gapi.client.getToken().access_token},body});
+    const j=await r.json(); if(j.id&&!fid){DB.settings.driveFileId=j.id;saveLocal();}
+  }catch(e){console.error('Drive save failed',e);}
+}
+async function syncDrive(){
+  if(!window.gapi?.client?.getToken()){toast('Connect Google Drive first.','err');return;}
+  try{
+    const tok=gapi.client.getToken().access_token; toast('Syncing…','ok');
+    let fid=DB.settings.driveFileId;
+    if(!fid){const r=await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name)',{headers:{Authorization:'Bearer '+tok}});const j=await r.json();const f=(j.files||[]).find(f=>f.name==='knowledgevault_data.json');if(f)fid=f.id;}
+    if(!fid){toast('No Drive data found yet.','ok');return;}
+    const r2=await fetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`,{headers:{Authorization:'Bearer '+tok}});
+    const remote=await r2.json();
+    DB={...defData(),...remote,settings:{...defData().settings,...remote.settings,driveFileId:fid,clientId:document.getElementById('gclient').value.trim(),apiKey:DB.settings.apiKey,apiProvider:DB.settings.apiProvider}};
+    saveLocal(); toast('Synced from Google Drive!','ok'); renderDash();
+  }catch(e){toast('Sync failed.','err');console.error(e);}
+}
+function exportJSON(){
+  const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='knowledgevault_backup.json'; a.click(); URL.revokeObjectURL(a.href);
+  toast('Exported!','ok');
+}
+function handleImport(e){
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader(); r.onload=ev=>{
+    try{const d=JSON.parse(ev.target.result);if(d.concepts&&Array.isArray(d.concepts)){DB={...defData(),...d};save();toast(`Imported ${d.concepts.length} concepts!`,'ok');renderDash();}else toast('Invalid file.','err');}
+    catch(e){toast('Could not read file.','err');}
+  }; r.readAsText(f);
+}
+
+// ══════════════════════════════════════════════
+// PWA — MANIFEST (injected inline as blob)
+// ══════════════════════════════════════════════
+function injectManifest() {
+  const manifest = {
+    name: 'KnowledgeVault',
+    short_name: 'KnowledgeVault',
+    description: 'Personal Learning System — master concepts for life',
+    start_url: './',
+    display: 'standalone',
+    background_color: '#0e0f13',
+    theme_color: '#0e0f13',
+    orientation: 'any',
+    categories: ['education', 'productivity'],
+    icons: [
+      {
+        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%230e0f13'/><text y='130' x='96' text-anchor='middle' font-size='110' font-family='serif'>📚</text></svg>",
+        sizes: '192x192',
+        type: 'image/svg+xml',
+        purpose: 'any maskable'
+      },
+      {
+        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%230e0f13'/><text y='360' x='256' text-anchor='middle' font-size='300' font-family='serif'>📚</text></svg>",
+        sizes: '512x512',
+        type: 'image/svg+xml',
+        purpose: 'any maskable'
+      }
+    ],
+    shortcuts: [
+      { name: 'Add Concept', short_name: 'Add', description: 'Add a new concept', url: './#add', icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text y='80' font-size='80'>✚</text></svg>", sizes: '96x96' }] },
+      { name: 'Study Now', short_name: 'Study', description: 'Start studying', url: './#study', icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text y='80' font-size='80'>🎯</text></svg>", sizes: '96x96' }] }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  document.getElementById('pwa-manifest').setAttribute('href', url);
+}
+
+// ══════════════════════════════════════════════
+// PWA — SERVICE WORKER (injected inline as blob)
+// ══════════════════════════════════════════════
+function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  const swCode = `
+const CACHE = 'kv-v1';
+const FONTS = 'https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap';
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(['./', FONTS]).catch(() => c.add('./')))
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  // Always pass through Google APIs (Drive, OAuth)
+  if (e.request.url.includes('googleapis.com') || e.request.url.includes('accounts.google.com') || e.request.url.includes('localhost:11434')) {
+    return;
+  }
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(resp => {
+        if (resp && resp.status === 200 && resp.type === 'basic') {
+          const clone = resp.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return resp;
+      }).catch(() => caches.match('./'));
+    })
+  );
+});
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl, { scope: './' })
+    .then(reg => {
+      console.log('KnowledgeVault SW registered');
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            toast('App updated! Reload to get the latest version.', 'ok');
+          }
+        });
+      });
+    })
+    .catch(err => console.log('SW registration failed (normal in local file mode):', err));
+}
+
+// ══════════════════════════════════════════════
+// PWA — INSTALL PROMPT
+// ══════════════════════════════════════════════
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Show banner after 3 seconds if not dismissed before
+  const dismissed = localStorage.getItem('kv_pwa_dismissed');
+  if (!dismissed) {
+    setTimeout(() => {
+      document.getElementById('pwa-banner').classList.add('show');
+      document.getElementById('install-nav-btn').style.display = 'flex';
+    }, 3000);
+  } else {
+    // Still show in sidebar
+    document.getElementById('install-nav-btn').style.display = 'flex';
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  document.getElementById('pwa-banner').classList.remove('show');
+  document.getElementById('install-nav-btn').style.display = 'none';
+  toast('KnowledgeVault installed! 🎉 Find it in your apps.', 'ok');
+});
+
+async function installPWA() {
+  if (!deferredInstallPrompt) {
+    toast('Installation not available. Try opening from Chrome or Edge on desktop/Android.', 'ok');
+    return;
+  }
+  document.getElementById('pwa-banner').classList.remove('show');
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') {
+    toast('Installing KnowledgeVault...', 'ok');
+  }
+  deferredInstallPrompt = null;
+}
+
+function dismissPWA() {
+  document.getElementById('pwa-banner').classList.remove('show');
+  localStorage.setItem('kv_pwa_dismissed', '1');
+}
+
+// ══════════════════════════════════════════════
+// PWA — OFFLINE DETECTION
+// ══════════════════════════════════════════════
+function updateOnlineStatus() {
+  const badge = document.getElementById('offline-badge');
+  if (!navigator.onLine) {
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// ══════════════════════════════════════════════
+// PWA — THEME COLOR SYNC
+// ══════════════════════════════════════════════
+function syncThemeColor() {
+  const isLight = document.body.classList.contains('light');
+  document.getElementById('theme-color-meta').setAttribute('content', isLight ? '#f4f3ef' : '#0e0f13');
+}
+
+// Patch toggleTheme to also sync theme color
+const _origToggleTheme = toggleTheme;
+function toggleTheme() {
+  _origToggleTheme();
+  syncThemeColor();
+}
+
+// ══════════════════════════════════════════════
+// PWA INIT
+// ══════════════════════════════════════════════
+injectManifest();
+registerSW();
+updateOnlineStatus();
+syncThemeColor();
+let toastT;
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`show ${type}`;
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  applyTheme();
+  // Sample data if empty
+  if(!DB.concepts.length){
+    DB.concepts=[
+      {id:'s1',title:'Scaffold / Scaffolding',simple:'Creating the basic structure or starting framework of something so you can build the rest on top of it. Like construction scaffolding — a temporary structure that helps build a building.',field:'In programming, scaffolding means automatically generating starter code, folders and files so developers don\'t write everything from scratch. Many frameworks create the basic project structure including folders, config files, routes and models.',example:'npx create-next-app myproject\n\nAutomatically creates:\nmyproject/\n ├── pages/\n ├── public/\n ├── styles/\n ├── package.json\n └── next.config.js\n\nThis automatic structure is called scaffolding.',client:'"First I will scaffold the project structure, then build the features." or "The framework already provides scaffolding for authentication and APIs."',misconception:'Scaffolding is NOT the final product — it\'s just the starting template. The actual features still need to be built on top of it.',synonyms:'Boilerplate, Starter template, Project skeleton, Code generator',why:'Understanding scaffolding helps you start projects in seconds and explain your workflow professionally to clients.',protip:'Next.js → create-next-app, Express → express-generator, Django → django-admin startproject, Rails → famous for scaffolding.',tags:['Programming','Frameworks','Workflow'],confidence:3,createdAt:Date.now()-86400000,nextReview:Date.now(),reviewCount:2},
+      {id:'s2',title:'Minimum Viable Product (MVP)',simple:'The first basic version of a product with only the most important features so people can start using it and give feedback. Goal: test the idea quickly without spending too much time or money.',field:'In AI/software projects, MVP means building a simple working solution first. Instead of a full chatbot with multi-language, voice, analytics and CRM — you build a simple chatbot that answers from a small dataset via text chat only.',example:'Food delivery app MVP:\nFull product: live tracking, payments, reviews, coupons, AI recommendations\nMVP: list of restaurants + order button + delivery address\n\nThat\'s enough to test if people actually want to use the app.',client:'"First we will build an MVP with the core features. After testing with users, we add more." or "Let\'s start with an MVP to validate the idea before building the full system."',misconception:'MVP does NOT mean cheap or low-quality. MVP means small but functional. It must solve the main problem, actually work, and allow user feedback.',synonyms:'Prototype, Beta version, Proof of concept, v0.1',why:'Understanding MVP lets you manage client expectations, deliver value faster, and avoid wasting months on features nobody wants.',protip:'MVP = Smallest Product That Still Solves the Core Problem. Always start with MVP thinking even for internal tools.',tags:['Business','Product Development','Client Communication'],confidence:4,createdAt:Date.now()-172800000,nextReview:Date.now(),reviewCount:5}
+    ];
+    save();
+  }
+  renderDash();
+});
+document.getElementById('c-modal').addEventListener('click',e=>{if(e.target===document.getElementById('c-modal'))closeModal();});
+</script>
+</body>
+</html>
